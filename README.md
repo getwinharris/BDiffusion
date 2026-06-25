@@ -1,87 +1,46 @@
-<h1 align="center">
-  <a href="https://github.com/SakanaAI/L2D/">
-<img src="figures/logo.png" width="300" /></a><br>
-<b>Large Language Models to Diffusion Finetuning</b><br>
-</h1>
+# BDiffusion
 
-<p align="center">
-  📚 <a href="https://arxiv.org/abs/2501.15781">[Paper]</a> |
-  🤗 <a href="https://huggingface.co/SakanaAI">[Hugging Face]</a>
-</p>
+Status: renamed/current ByteOmniDiffus research repo.
 
+This repository currently contains the imported L2D codebase from the initial commit. That code is reference material for diffusion-style adaptation, not the final product identity.
 
-## Installation
+## Active direction
 
-We provide the full list of dependencies required to run and reproduce our experiments with the `requirements.txt` file, which can be installed into any Python environment via pip:
+BDiffusion is being rebuilt around combined remote model-weight records treated as dense diffusion-style model objects.
 
-```bash
-pip install -r requirements.txt
-```
+A model record groups related artifacts together:
 
-## Running experiments
+- GGUF / ONNX / safetensors weights
+- Q8 quantization metadata
+- config files
+- tokenizer files
+- model cards
+- dataset links
+- source URLs
+- capability tags
 
-In the `cfgs/` folder, we provide the full list of configurations and hyper-parameters used in our work to train and evaluate L2D. In particular, the `cfgs/model/` subfolder contains model-specific configurations named as:
-1. `{base_model}_lad.cfg` for L2D full diffusion path finetuning.
-2.  `{base_model}_lad_lora.cfg` for L2D diffusion path finetuning with LoRA.
+The target system is not a next-token prediction pipeline. It is a diffusion-style routing and refinement system over combined model-state records.
 
-For instance: `llama_3.1_8b_instruct_lad_lora.cfg`.
+## What to keep from L2D
 
-However, you can train and evaluate any existing local models or ones hosted on [Huggingface](https://huggingface.co/) by simply modifying:
+Keep the useful mechanism idea:
 
-```py
-pretrained_model_dir = "my/model/name/or/path"
-tokenizer_dir = "my/model/name/or/path"
-```
+- a base model and tokenizer are linked together
+- a diffusion or flow layer can adapt/refine over the base model
+- configs can describe model identity, flow representation, timestep behavior, LoRA/adaptation, and evaluation
 
-While we make use of distributed training and evaluation setups with the _deepspeed_ library, our experiments should be reproducible even with small computation budgets and a single GPU by regulating the _micro\_batch\_size_ parameters. In the `scripts/` folder, we provide further scripts to facilitate running experiments with our repository.
+Do not treat the imported L2D README, branding, training commands, or dependency stack as BDiffusion product identity.
 
-By default, checkpoints and results are saved in the `experiments` folder.
+## First rebuild pieces
 
-### Finetuning Llama and Qwen models
+- combined model record schema
+- remote artifact indexer
+- SearXNG search integration
+- direct URL and Hugging Face artifact discovery
+- Q8 metadata scanner
+- capability router
+- generated project map
 
-Please, use the `scripts/run_training.sh` script feeding as the first argument the GPUs available to utilize (e.g., 0 or 0,1 or 0,1,2,3... etc.) and as the second argument a path to the relevant config file (e.g., `llama_3.2_1b_instruct_lad_lora.cfg`):
+## Repository rule
 
-```bash
-scripts/run_training.sh 0,1 cfgs/model/llama_3.2_1b_instruct_lad_lora.cfg
-```
-
-By default, this training phase uses a subset of the Smoltalk dataset. However, it can be easily extended to any custom dataset by making another traning task following the example structure in `tasks/smoltalk.py`.
-
-### Evaluation
-
-Please, use the `scripts/run_bench_full.sh` script feeding as the first argument the GPUs available to utilize (e.g., 0 or 0,1 or 0,1,2,3... etc.), as second argument a path to the relevant config file (e.g., `cfgs/model/llama_3.2_1b_lad_lora.cfg`), and as third argument the path to the saved PyTorch checkpoint file after training:
-
-```bash
-scripts/run_bench_full.sh 0,1 cfgs/model/llama_3.2_1b_lad_lora.cfg $CHECKPOINT_PATH
-```
-
-In our experiments, we made use of the `lighteval/MATH` dataset for our results on the MATH task. Since this dataset has been temporarily removed from Huggingface, our default configuration files forego this setting. Please, add an equivalent local or hosted dataset back to `cfgs\benchmark.cfg` to reactivate MATH evaluation.
-
-### Additional notes
-
-Running experiments requires downloading models and datasets hosted on [Huggingface](https://huggingface.co/). Hence, it requires logging into a Huggingface account with an access token, [as explained here](https://huggingface.co/docs/hub/security-tokens), with the following command:
-
-```sh
-huggingface-cli login
-```
-
-The default logging functionality saves results locally via TensorBoard. Furthermore, [Weights & Biases](https://wandb.ai/) logging is also supported. To use this, please modify the provided configuration files by adding:
-
-```py
-save_wandb = True
-```
-
-
-## Bibtex
-
-To cite our work, you can use the following:
-
-```
-@article{sakana2025l2d,
-  title={Large Language Models to Diffusion Finetuning},
-  author={Cetin, Edoardo and Zhao, Tianyu and Tang, Yujin},
-  journal={arXiv preprint arXiv:2501.15781},
-  year={2025}
-}
-```
-
+Keep this repo small and understandable. Remove or quarantine anything that does not support the new BDiffusion direction.
