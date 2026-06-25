@@ -1,4 +1,4 @@
-# DOCS-INDEX Framework Hierarcy
+# DOCS-INDEX Framework Hierarchy
 
 - DOCS-INDEX is a high-performance "AGENTS.md" hierarchy installed here.
 - Agents must follow DOCS-INDEX instructions across all edits.
@@ -91,7 +91,7 @@ Do not scaffold visual project code before creating:
 
 Treat feature requests, bug reports, production issues, and implementation tasks as GitHub issue work unless the user explicitly says the turn is research-only, planning-only, or no-GitHub.
 
-Before implementation:
+### Before implementation
 
 - Verify project_map.mmd and code cross verifying user prompt anput frature/issue
 - Create or identify(if issue exist) a GitHub issue after findinf the actial issue in code from project_map.mmd and index and files.
@@ -113,14 +113,14 @@ Do not encode specific agent products, vendors, models, IDEs, or runtimes into b
 
 Do not merge directly to "main" for feature or fix work unless the user explicitly authorizes it.
 
-Open a pull request with:
+### Open a pull request with
 
 - Linked issue.
 - Summary.
 - Verification.
 - Version impact.
 
-Every PR must declare version impact:
+### Every PR must declare version impact
 
 - "none"
 - "patch"
@@ -148,7 +148,7 @@ Project Map
 
 It exists to make the repository work like a NotebookLM-style source graph for coding agents.
 
-The map should systematically index:
+### The map should systematically index
 
 - Files and folders.
 - "AGENTS.md" hierarchy.
@@ -171,9 +171,9 @@ The map should systematically index:
 
 "project_map.mmd" is not a manually maintained knowledge graph.
 
-Do not write the project map by hand.
+### Do not write the project map by hand
 
-Rules:
+# Rules
 
 - If "project_map.mmd" already exists, use it.
 - If "tools/generate_project_map.py" already exists, use it.
@@ -187,14 +187,14 @@ Rules:
 - Verify the generated map before closeout when mapped files or the generator changed.
 - test the product with CLI or WEB UI (using plawright/browser agent skills) as applicable to your repository before making a PR if there is still issues fix it. always create issues you noted but not listed in project issues list. and solved other issues from previous commits if issues not solved yet not only work og /Goal or current prompt (feature/bug/issue/PR)
 
-Recommended commands:
+### Recommended commands
 
 python3 tools/generate_project_map.py
 python3 tools/generate_project_map.py --check
 
 After the project map exists, "AGENTS.md" should only reference the generated project map contract. Do not manually duplicate project knowledge that belongs in "project_map.mmd".
 
-Read Before Editing
+### Read Before Editing
 
 1. Read the root "AGENTS.md".
 2. Identify every file or folder expected to change.
@@ -206,13 +206,13 @@ Read Before Editing
 
 Do not rely on memory.
 
-Re-read the applicable DOCS-INDEX chain in the current session before editing.
+### Re-read the applicable DOCS-INDEX chain in the current session before editing
 
-Update After Editing
+### Update After Editing
 
 Every meaningful change requires a DOCS-INDEX pass before the task is done.
 
-Update the closest owning "AGENTS.md" when a change affects:
+### Update the closest owning "AGENTS.md" when a change affects
 
 - Purpose, scope, ownership, or responsibilities.
 - Durable structure, contracts, workflows, or operating rules.
@@ -220,22 +220,22 @@ Update the closest owning "AGENTS.md" when a change affects:
 - User preferences about behavior, communication, process, organization, or quality.
 - "AGENTS.md" creation, deletion, move, rename, or index contents.
 
-Update parent docs when parent-level structure, ownership, workflow, or child index changes.
+### Update parent docs when parent-level structure, ownership, workflow, or child index changes
 
-Update child docs when parent changes alter local rules.
+### Update child docs when parent changes alter local rules
 
-Remove stale or contradictory text immediately.
+### Remove stale or contradictory text immediately
 
 Small edits that do not change behavior or contracts may leave docs unchanged, but the DOCS-INDEX pass still must happen.
 
-Hierarchy
+### Hierarchy
 
 - Root "AGENTS.md" is the DOCS-INDEX rail: project-wide instructions, global preferences, durable workflow rules, and the top-level Child DOCS-INDEX Index.
 - Child "AGENTS.md" files own domain-specific instructions and their own Child DOCS-INDEX Index.
 - Each parent explains what its direct children cover and what stays owned by the parent.
 - The closer a doc is to the work, the more specific and practical it must be.
 
-Child Doc Shape
+### Child Doc Shape
 
 Create a child "AGENTS.md" when a folder becomes a durable boundary with its own:
 
@@ -246,7 +246,7 @@ Create a child "AGENTS.md" when a folder becomes a durable boundary with its own
 - Materials.
 - Quality standards.
 
-Default section order:
+### Default section order
 
 # AGENTS.md
 
@@ -270,7 +270,7 @@ If there are no specific standards or instructions yet, leave it empty.
 
 If no verification framework exists yet, leave it empty and update it when one exists.
 
-Style
+### Style
 
 - Keep docs concise, current, and operational.
 - Document stable contracts, not diary entries.
@@ -280,7 +280,7 @@ Style
 - Delete stale notes instead of explaining history.
 - Trim obvious statements, repeated rules, misplaced detail, and warnings for risks that no longer exist.
 
-Closeout
+### Closeout
 
 1. Re-check changed paths against the DOCS-INDEX chain.
 2. Update nearest owning docs and any affected parents or children.
@@ -291,14 +291,21 @@ Closeout
 7. Run existing verification when relevant.
 8. Report any docs intentionally left unchanged and why.
 
-User Preferences
+### User Preferences
 
 When the user requests a durable behavior change, record it here or in the relevant child "AGENTS.md".
 
 Child DOCS-INDEX Index
 
-This project is not yet indexed.
+| Area | Path | Purpose |
+|------|------|---------|
+| Entry Points | Root `*.py` | Training, benchmarks, evaluation |
+| Flow Models | `flow_llms/` | Flow-augmented Llama & Qwen2 architectures |
+| Pipeline | `pipeline/` | Training & inference orchestration, arg parsing, data loading, decoding |
+| Task Processors | `tasks/` | Dataset-specific data processors & evaluators (MMLU, GSM8K, MATH, ARC, PIQA, HumanEval, MBPP) |
+| Configurations | `cfgs/` | Experiment config files (training, benchmark, model-specific LAD) |
+| Shell Scripts | `scripts/` | DeepSpeed launcher scripts |
+| Tools | `tools/` | Developer utilities (project map generator) |
+| Assets | `figures/` | Project logo and images |
 
-Before continuing, scan the project, build the DOCS-INDEX tree, and replace this message with the actual index.
-
-Go deep and scan files recursively to evaluate complexity and create nested "AGENTS.md" files where durable boundaries exist.
+See `project_map.mmd` for full structural graph: file dependencies, duplicate functions, stale code, connected/unconnected components, and missing artifacts.

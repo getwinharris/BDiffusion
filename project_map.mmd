@@ -1,0 +1,464 @@
+```mermaid
+graph TB
+
+%% ============================================================
+%% BDiffusion -- Project Map (auto-generated)
+%% ============================================================
+
+%% Styles
+classDef green fill:#e8f5e9,stroke:#2e7d32
+classDef blue fill:#e3f2fd,stroke:#1565c0
+classDef orange fill:#fff3e0,stroke:#e65100
+classDef red fill:#ffebee,stroke:#c62828
+classDef purple fill:#f3e5f5,stroke:#6a1b9a
+classDef teal fill:#e0f2f1,stroke:#004d40
+classDef amber fill:#fff8e1,stroke:#f9a825
+
+%% ============================================================
+%% SECTION 1: ENTRY POINTS
+%% ============================================================
+
+    subgraph EntryPoints [Entry Points]
+        direction LR
+        n_benchmark_py["benchmark.py\n(average_per_dimension, compute_metrics, forward_step, get_eval_custom_arguments, main)"]
+        n_benchmark_code_py["benchmark_code.py\n(average_per_dimension, compute_metrics, forward_step, get_eval_custom_arguments, main)"]
+        n_data_py["data.py\n(load_conversation_data_from_hf)"]
+        n_evaluation_py["evaluation.py\n(forward_step, get_eval_custom_arguments, main)"]
+        n_training_py["training.py\n(build_ode_solver, build_model, train_forward_step, valid_forward_step, get_custom_arguments, main)"]
+        n_utils_py["utils.py\n(empty_gpu_cache, add_pad_token, estimate_nstep_cross_entropy, compute_accuracy_from_logits, calculate_binned_losses)"]
+        n_utils_logging_py["utils_logging.py\n[Metrics]\n(get_mean_std_max_min_dict)"]
+    end
+
+%% ============================================================
+%% SECTION 2: ARCHITECTURE LAYERS
+%% ============================================================
+
+        n_flow_llms___init___py["__init__.py"]
+        n_flow_llms_base_py["base.py\n[FrequencyEmbedder, OneHotEmbedder, MappingEmbedder, FlowT...]"]
+        n_flow_llms_base_components_py["base_components.py\n[FlowModelOutputWithPast, FlowCausalLMOutputWithPast, Flow...]"]
+        n_flow_llms_llama_py["llama.py\n[FlowLlamaModel, FlowLlamaForCausalLM]"]
+        n_flow_llms_llama_components_py["llama_components.py\n[FlowLlamaRMSNorm, FlowLlamaMLP, FlowLlamaSdpaAttention, F...]"]
+        n_flow_llms_qwen2_py["qwen2.py\n[FlowQwen2Model, FlowQwen2ForCausalLM]"]
+        n_flow_llms_qwen2_components_py["qwen2_components.py\n[FlowQwen2RMSNorm, FlowQwen2MLP, FlowQwen2SdpaAttention, F...]"]
+        n_flow_llms_utils_py["utils.py"]
+    subgraph FlowModels [Flow-Augmented LLMs]
+        n_flow_llms___init___py
+        n_flow_llms_base_py
+        n_flow_llms_base_components_py
+        n_flow_llms_llama_py
+        n_flow_llms_llama_components_py
+        n_flow_llms_qwen2_py
+        n_flow_llms_qwen2_components_py
+        n_flow_llms_utils_py
+    end
+
+        n_pipeline___init___py["__init__.py"]
+        n_pipeline_argument_py["argument.py\n(str2bool, str_or_float, config_sanity_check, add_peft_arguments, add_generation_arguments, get_arguments, get_inference_arguments)"]
+        n_pipeline_data_py["data.py\n[BasicDataSource, DataProcessor, DataReformatter, IdentityDataProcessor]\n(load_data_from_jsonl)"]
+        n_pipeline_decoding_util_py["decoding_util.py\n[EOSCriteria, Trie]\n(autoregressive_decode, step_decode, temperature_processor, good_token_ids_processor, bad_token_ids_processor, penalty_processor, top_k_processor, top_p_processor)"]
+        n_pipeline_inference_py["inference.py\n[InferencePipeline]"]
+        n_pipeline_training_py["training.py\n[TrainingPipeline]"]
+        n_pipeline_util_py["util.py\n[StatisticsTracker]\n(set_logging_config, set_random_seed, get_number_of_parameters, is_rank_0, add_pad_token, build_tokenizer, build_model, build_peft_model...)"]
+    subgraph Pipeline [Training / Inference Pipeline]
+        n_pipeline___init___py
+        n_pipeline_argument_py
+        n_pipeline_data_py
+        n_pipeline_decoding_util_py
+        n_pipeline_inference_py
+        n_pipeline_training_py
+        n_pipeline_util_py
+    end
+
+        n_tasks___init___py["__init__.py"]
+        n_tasks_arc_py["arc.py\n[ARCDataProcessor, ARCEvalProcessor]"]
+        n_tasks_base_py["base.py\n[Task]"]
+        n_tasks_constants_py["constants.py"]
+        n_tasks_gsm8k_py["gsm8k.py\n[GSM8kDataProcessor, GSM8kEvalProcessor]"]
+        n_tasks_humaneval_py["humaneval.py\n[HumanEvalDataProcessor, InstructHumanEvalDataProcessor]"]
+        n_tasks_math_py["math.py\n[MATHDataProcessor, MATHEvalProcessor]"]
+        n_tasks_mbpp_py["mbpp.py\n[MBPPDataProcessor]"]
+        n_tasks_mmlu_py["mmlu.py\n[MMLUDataProcessor, MMLUEvalProcessor]"]
+        n_tasks_mmlu_pro_py["mmlu_pro.py\n[MMLUProDataProcessor, MMLUProEvalProcessor]"]
+        n_tasks_piqa_py["piqa.py\n[PIQADataProcessor, PIQAEvalProcessor]"]
+        n_tasks_smoltalk_py["smoltalk.py\n[SmolTalkDataProcessor]"]
+        n_tasks_templates_py["templates.py"]
+        n_tasks_utils_py["utils.py"]
+    subgraph Tasks [Task Processors & Evaluators]
+        n_tasks___init___py
+        n_tasks_arc_py
+        n_tasks_base_py
+        n_tasks_constants_py
+        n_tasks_gsm8k_py
+        n_tasks_humaneval_py
+        n_tasks_math_py
+        n_tasks_mbpp_py
+        n_tasks_mmlu_py
+        n_tasks_mmlu_pro_py
+        n_tasks_piqa_py
+        n_tasks_smoltalk_py
+        n_tasks_templates_py
+        n_tasks_utils_py
+    end
+
+        n_cfgs_benchmark_cfg["benchmark.cfg\n(DATA, INFERENCE)"]
+        n_cfgs_benchmark_code_cfg["benchmark_code.cfg\n(DATA, INFERENCE)"]
+        n_cfgs_model_llama_3_1_8b_instruct_lad_cfg["model/llama_3.1_8b_instruct_lad.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_model_llama_3_1_8b_instruct_lad_lora_cfg["model/llama_3.1_8b_instruct_lad_lora.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_model_llama_3_2_1b_instruct_lad_cfg["model/llama_3.2_1b_instruct_lad.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_model_llama_3_2_1b_instruct_lad_lora_cfg["model/llama_3.2_1b_instruct_lad_lora.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_model_qwen_2_5_1_5b_instruct_lad_cfg["model/qwen_2.5_1.5b_instruct_lad.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_model_qwen_2_5_1_5b_instruct_lad_lora_cfg["model/qwen_2.5_1.5b_instruct_lad_lora.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_model_qwen_2_5_7b_instruct_lad_cfg["model/qwen_2.5_7b_instruct_lad.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_model_qwen_2_5_7b_instruct_lad_lora_cfg["model/qwen_2.5_7b_instruct_lad_lora.cfg\n(DISTRIBUTED, LAD, MODEL, TRAINING)"]
+        n_cfgs_training_cfg["training.cfg\n(DATA, TRAINING)"]
+    subgraph Configs [Configuration Files]
+        n_cfgs_benchmark_cfg
+        n_cfgs_benchmark_code_cfg
+        n_cfgs_model_llama_3_1_8b_instruct_lad_cfg
+        n_cfgs_model_llama_3_1_8b_instruct_lad_lora_cfg
+        n_cfgs_model_llama_3_2_1b_instruct_lad_cfg
+        n_cfgs_model_llama_3_2_1b_instruct_lad_lora_cfg
+        n_cfgs_model_qwen_2_5_1_5b_instruct_lad_cfg
+        n_cfgs_model_qwen_2_5_1_5b_instruct_lad_lora_cfg
+        n_cfgs_model_qwen_2_5_7b_instruct_lad_cfg
+        n_cfgs_model_qwen_2_5_7b_instruct_lad_lora_cfg
+        n_cfgs_training_cfg
+    end
+
+        n_scripts_run_bench_sh["run_bench.sh"]
+        n_scripts_run_bench_code_sh["run_bench_code.sh"]
+        n_scripts_run_bench_full_sh["run_bench_full.sh"]
+        n_scripts_run_bench_tasks_sh["run_bench_tasks.sh"]
+        n_scripts_run_training_sh["run_training.sh"]
+    subgraph Scripts [Shell Launchers]
+        n_scripts_run_bench_sh
+        n_scripts_run_bench_code_sh
+        n_scripts_run_bench_full_sh
+        n_scripts_run_bench_tasks_sh
+        n_scripts_run_training_sh
+    end
+
+        n_AGENTS_md["AGENTS.md"]
+    subgraph AgentsDocs [DOCS-INDEX Hierarchy]
+        n_AGENTS_md
+    end
+
+        n_tools_generate_project_map_py["generate_project_map.py\n(read_file, rel_path, safe_id, node, collect, parse_ast, get_imports...)"]
+    subgraph Tools [Developer Tools]
+        n_tools_generate_project_map_py
+    end
+
+%% ============================================================
+%% SECTION 3: DATA FLOW
+%% ============================================================
+
+    Data_HF[HF Datasets\n(load_dataset)]
+    n_data_py
+    n_pipeline_data_py
+    n_tasks_arc_py
+    n_tasks_gsm8k_py
+    n_tasks_humaneval_py
+    n_tasks_math_py
+    n_tasks_mbpp_py
+    n_tasks_mmlu_py
+    n_tasks_mmlu_pro_py
+    n_tasks_piqa_py
+    n_tasks_smoltalk_py
+
+    n_tasks_base_py
+    n_tasks_constants_py
+    n_tasks_utils_py
+    n_tasks_templates_py
+
+    %% Edges: Data flow
+    Data_HF[HF Datasets\n(load_dataset)] -->|"load_dataset"| n_data_py
+    n_data_py -->|"line2data"| n_tasks_base_py
+    n_tasks_arc_py -->|inherits| n_tasks_base_py
+    n_tasks_gsm8k_py -->|inherits| n_tasks_base_py
+    n_tasks_humaneval_py -->|inherits| n_tasks_base_py
+    n_tasks_math_py -->|inherits| n_tasks_base_py
+    n_tasks_mbpp_py -->|inherits| n_tasks_base_py
+    n_tasks_mmlu_py -->|inherits| n_tasks_base_py
+    n_tasks_mmlu_pro_py -->|inherits| n_tasks_base_py
+    n_tasks_piqa_py -->|inherits| n_tasks_base_py
+    n_tasks_smoltalk_py -->|inherits| n_tasks_base_py
+    n_tasks_arc_py -->|uses| n_tasks_constants_py
+    n_tasks_arc_py -->|uses| n_tasks_utils_py
+    n_tasks_arc_py -->|uses| n_tasks_templates_py
+    n_tasks_gsm8k_py -->|uses| n_tasks_constants_py
+    n_tasks_gsm8k_py -->|uses| n_tasks_utils_py
+    n_tasks_gsm8k_py -->|uses| n_tasks_templates_py
+    n_tasks_humaneval_py -->|uses| n_tasks_constants_py
+    n_tasks_humaneval_py -->|uses| n_tasks_utils_py
+    n_tasks_humaneval_py -->|uses| n_tasks_templates_py
+    n_tasks_math_py -->|uses| n_tasks_constants_py
+    n_tasks_math_py -->|uses| n_tasks_utils_py
+    n_tasks_math_py -->|uses| n_tasks_templates_py
+    n_tasks_mbpp_py -->|uses| n_tasks_constants_py
+    n_tasks_mbpp_py -->|uses| n_tasks_utils_py
+    n_tasks_mbpp_py -->|uses| n_tasks_templates_py
+    n_tasks_mmlu_py -->|uses| n_tasks_constants_py
+    n_tasks_mmlu_py -->|uses| n_tasks_utils_py
+    n_tasks_mmlu_py -->|uses| n_tasks_templates_py
+    n_tasks_mmlu_pro_py -->|uses| n_tasks_constants_py
+    n_tasks_mmlu_pro_py -->|uses| n_tasks_utils_py
+    n_tasks_mmlu_pro_py -->|uses| n_tasks_templates_py
+    n_tasks_piqa_py -->|uses| n_tasks_constants_py
+    n_tasks_piqa_py -->|uses| n_tasks_utils_py
+    n_tasks_piqa_py -->|uses| n_tasks_templates_py
+    n_tasks_smoltalk_py -->|uses| n_tasks_constants_py
+    n_tasks_smoltalk_py -->|uses| n_tasks_utils_py
+    n_tasks_smoltalk_py -->|uses| n_tasks_templates_py
+
+%% ============================================================
+%% SECTION 4: TRAINING FLOW
+%% ============================================================
+
+    n_training_py -->|"orchestrates via"| n_pipeline_training_py
+    n_pipeline_training_py -->|"args"| n_pipeline_argument_py
+    n_training_py -->|"builds"| n_flow_llms_llama_py
+    n_training_py -->|"builds"| n_flow_llms_qwen2_py
+    Training_train_fwd["train_forward_step()\nforward pass + CE loss"]
+    Training_val_fwd["valid_forward_step()\nforward + nstep eval + accuracy"]
+    n_pipeline_training_py -->|"calls"| Training_train_fwd["train_forward_step()\nforward pass + CE loss"]
+    n_pipeline_training_py -->|"calls"| Training_val_fwd["valid_forward_step()\nforward + nstep eval + accuracy"]
+    Training_train_fwd["train_forward_step()\nforward pass + CE loss"] -->|"model.forward()"| n_flow_llms_llama_py
+    Training_val_fwd["valid_forward_step()\nforward + nstep eval + accuracy"] -->|"model.forward()"| n_flow_llms_llama_py
+    Training_val_fwd["valid_forward_step()\nforward + nstep eval + accuracy"] -->|"nstep_inference()"| n_flow_llms_llama_py
+    Training_train_fwd["train_forward_step()\nforward pass + CE loss"] -->|"model.forward()"| n_flow_llms_qwen2_py
+    Training_val_fwd["valid_forward_step()\nforward + nstep eval + accuracy"] -->|"model.forward()"| n_flow_llms_qwen2_py
+    Training_val_fwd["valid_forward_step()\nforward + nstep eval + accuracy"] -->|"nstep_inference()"| n_flow_llms_qwen2_py
+    Training_train_fwd["train_forward_step()\nforward pass + CE loss"] -->|"compute_accuracy"| n_utils_py
+    Training_val_fwd["valid_forward_step()\nforward + nstep eval + accuracy"] -->|"compute_accuracy"| n_utils_py
+
+%% ============================================================
+%% SECTION 5: INFERENCE FLOW
+%% ============================================================
+
+    n_benchmark_py -->|"orchestrates via"| n_pipeline_inference_py
+    n_benchmark_code_py -->|"orchestrates via"| n_pipeline_inference_py
+    n_evaluation_py -->|"orchestrates via"| n_pipeline_inference_py
+    n_pipeline_inference_py -->|"calls"| n_pipeline_decoding_util_py
+    n_pipeline_decoding_util_py -->|"autoregressive_decode"| n_flow_llms_llama_py
+    NStepInference[nstep_inference()\nODE Integration]
+    ComputeVelocity[compute_velocity()\nx1_prediction -> velocity]
+    ODEInt[odeint()\ntorchdiffeq]
+    n_flow_llms_llama_py -->|"calls"| NStepInference[nstep_inference()\nODE Integration]
+    NStepInference[nstep_inference()\nODE Integration] -->|"calls"| ComputeVelocity[compute_velocity()\nx1_prediction -> velocity]
+    NStepInference[nstep_inference()\nODE Integration] -->|"integrates"| ODEInt[odeint()\ntorchdiffeq]
+    Guidance[Classifier-Free Guidance\ncond + uncond interpolation]
+    ComputeVelocity[compute_velocity()\nx1_prediction -> velocity] -->|"optional"| Guidance[Classifier-Free Guidance\ncond + uncond interpolation]
+    FlowRep[Flow Representation\ninterpolation / noise\nx0 + t(x1-x0)]
+    X1Pred[x1 estimation\nlogits -> flow_weights]
+    n_flow_llms_llama_py -->|"sample_timestep"| FlowRep[Flow Representation\ninterpolation / noise\nx0 + t(x1-x0)]
+    ComputeVelocity[compute_velocity()\nx1_prediction -> velocity] -->|"uses"| X1Pred[x1 estimation\nlogits -> flow_weights]
+
+%% ============================================================
+%% SECTION 6: MODEL ARCHITECTURE
+%% ============================================================
+
+    n_flow_llms_base_py
+    n_flow_llms_base_components_py
+    n_flow_llms_utils_py
+    n_flow_llms_llama_components_py
+    n_flow_llms_llama_py -->|"uses"| n_flow_llms_llama_components_py
+    n_flow_llms_llama_py -->|"inherits"| n_flow_llms_base_py
+    n_flow_llms_llama_py -->|"uses"| n_flow_llms_base_components_py
+    n_flow_llms_llama_py -->|"uses schedules"| n_flow_llms_utils_py
+    n_flow_llms_qwen2_py
+    n_flow_llms_qwen2_components_py
+    n_flow_llms_qwen2_py -->|"uses"| n_flow_llms_qwen2_components_py
+    n_flow_llms_qwen2_py -->|"inherits"| n_flow_llms_base_py
+    n_flow_llms_qwen2_py -->|"uses"| n_flow_llms_base_components_py
+    n_flow_llms_qwen2_py -->|"uses schedules"| n_flow_llms_utils_py
+    FlowDecoderLayer[FlowLlamaDecoderLayer / FlowQwen2DecoderLayer\nModulated RMSNorm + SDPA + MLP]
+    FlowAttention[Flow Attention\nseparate Q/O projections\nattend to frozen KV cache]
+    Modulation[Modulation Head\nDiT-style 6-component\ntimestep + guidance]
+    LoRA[LoRA Adapters\nfor flow gate/up/down\nand Q/O projections]
+    n_flow_llms_llama_components_py -->|"contains"| FlowDecoderLayer[FlowLlamaDecoderLayer / FlowQwen2DecoderLayer\nModulated RMSNorm + SDPA + MLP]
+    FlowDecoderLayer[FlowLlamaDecoderLayer / FlowQwen2DecoderLayer\nModulated RMSNorm + SDPA + MLP] -->|"uses"| FlowAttention[Flow Attention\nseparate Q/O projections\nattend to frozen KV cache]
+    FlowDecoderLayer[FlowLlamaDecoderLayer / FlowQwen2DecoderLayer\nModulated RMSNorm + SDPA + MLP] -->|"uses"| Modulation[Modulation Head\nDiT-style 6-component\ntimestep + guidance]
+    FlowDecoderLayer[FlowLlamaDecoderLayer / FlowQwen2DecoderLayer\nModulated RMSNorm + SDPA + MLP] -->|"optional"| LoRA[LoRA Adapters\nfor flow gate/up/down\nand Q/O projections]
+
+%% ============================================================
+%% SECTION 7: PRECISION & DTYPE FLOW
+%% ============================================================
+
+    Dtype_0[""BF16/FP16\nModel Forward\n(base transformer)""]
+    Dtype_1[""FP32\nLogits / Loss\nCE computation""]
+    Dtype_2[""FP64\nODE Integration\ntorchdiffeq""]
+    Dtype_3[""FP32\nFlow Representation\nnoise + interpolation""]
+    Dtype_0 -.->|"mixed precision"| Dtype_1
+    Dtype_1 -.->|"mixed precision"| Dtype_2
+    Dtype_2 -.->|"mixed precision"| Dtype_3
+
+%% ============================================================
+%% SECTION 8: CONFIGURATION FLOW
+%% ============================================================
+
+    n_cfgs_training_cfg -->|"loaded by"| n_pipeline_argument_py
+    n_cfgs_benchmark_cfg -->|"loaded by"| n_pipeline_argument_py
+    n_cfgs_benchmark_code_cfg -->|"loaded by"| n_pipeline_argument_py
+    CfgGroup[Model-LAD Configs\n8 variants: llama 1B/8B, qwen 1.5B/7B\nfull vs LoRA]
+    n_pipeline_argument_py -->|"+ extra_config"| CfgGroup[Model-LAD Configs\n8 variants: llama 1B/8B, qwen 1.5B/7B\nfull vs LoRA]
+    CfgGroup[Model-LAD Configs\n8 variants: llama 1B/8B, qwen 1.5B/7B\nfull vs LoRA] -->|"LAD params"| n_training_py
+
+%% ============================================================
+%% SECTION 9: DUPLICATE & STALE
+%% ============================================================
+
+    subgraph dup_add_pad_token [Duplicate: add_pad_token]
+        pipeline_util_py_87["pipeline/util.py:87"]
+        utils_py_14["utils.py:14"]
+        dup_add_pad_token_note["add_pad_token appears in 2 locations"]
+    end
+
+    subgraph dup_average_per_dimension [Duplicate: average_per_dimension]
+        benchmark_py_41["benchmark.py:41"]
+        benchmark_code_py_35["benchmark_code.py:35"]
+        dup_average_per_dimension_note["average_per_dimension appears in 2 locations"]
+    end
+
+    subgraph dup_build_model [Duplicate: build_model]
+        pipeline_util_py_187["pipeline/util.py:187"]
+        training_py_63["training.py:63"]
+        dup_build_model_note["build_model appears in 2 locations"]
+    end
+
+    subgraph dup_compute_metrics [Duplicate: compute_metrics]
+        benchmark_py_58["benchmark.py:58"]
+        benchmark_code_py_52["benchmark_code.py:52"]
+        dup_compute_metrics_note["compute_metrics appears in 2 locations"]
+    end
+
+    subgraph dup_forward_step [Duplicate: forward_step]
+        benchmark_py_169["benchmark.py:169"]
+        benchmark_code_py_144["benchmark_code.py:144"]
+        evaluation_py_31["evaluation.py:31"]
+        dup_forward_step_note["forward_step appears in 3 locations"]
+    end
+
+    subgraph dup_get_eval_custom_arguments [Duplicate: get_eval_custom_arguments]
+        benchmark_py_285["benchmark.py:285"]
+        benchmark_code_py_281["benchmark_code.py:281"]
+        evaluation_py_524["evaluation.py:524"]
+        dup_get_eval_custom_arguments_note["get_eval_custom_arguments appears in 3 locations"]
+    end
+
+    subgraph dup_main [Duplicate: main]
+        benchmark_py_310["benchmark.py:310"]
+        benchmark_code_py_306["benchmark_code.py:306"]
+        evaluation_py_540["evaluation.py:540"]
+        tools_generate_project_map_py_806["tools/generate_project_map.py:806"]
+        training_py_710["training.py:710"]
+        dup_main_note["main appears in 5 locations"]
+    end
+
+    stale_n_flow_llms_base_py["flow_llms/base.py: L132:raise NotImplementedError"]:::red
+
+    stale_n_flow_llms_base_components_py["flow_llms/base_components.py: L81:raise NotImplementedError"]:::red
+
+    stale_n_flow_llms_llama_py["flow_llms/llama.py: L715:raise NotImplementedError"]:::red
+
+    stale_n_flow_llms_llama_components_py["flow_llms/llama_components.py: L223:raise NotImplementedError"]:::red
+
+    stale_n_flow_llms_qwen2_py["flow_llms/qwen2.py: L602:raise NotImplementedError"]:::red
+
+    stale_n_flow_llms_qwen2_components_py["flow_llms/qwen2_components.py: L204:raise NotImplementedError"]:::red
+
+    stale_n_pipeline_data_py["pipeline/data.py: L56:raise NotImplementedError"]:::red
+
+    stale_n_tasks_base_py["tasks/base.py: L45:raise NotImplementedError"]:::red
+
+    stale_n_tasks_constants_py["tasks/constants.py: L216:raise NotImplementedError"]:::red
+
+    stale_n_training_py["training.py: L59:raise NotImplementedError"]:::red
+
+    stale_n_utils_py["utils.py: L23:raise NotImplementedError"]:::red
+
+
+%% ============================================================
+%% SECTION 10: MISSING EXPECTED LINKS
+%% ============================================================
+
+    missing_utils_logging_py_Metrics_class["utils_logging.py: Metrics class"]:::amber
+    missing_utils_logging_py_Metrics_class_note["unused -- StatisticsTracker from pipeline/util.py used instead"]:::amber
+    missing_pipeline_data_py_load_data_from_jsonl["pipeline/data.py: load_data_from_jsonl"]:::amber
+    missing_pipeline_data_py_load_data_from_jsonl_note["unused -- data.py:load_conversation_data_from_hf is active"]:::amber
+    missing_utils_py_estimate_nstep_cross_entropy["utils.py: estimate_nstep_cross_entropy"]:::amber
+    missing_utils_py_estimate_nstep_cross_entropy_note["raises NotImplementedError"]:::amber
+    missing_utils_py_add_pad_token["utils.py: add_pad_token"]:::amber
+    missing_utils_py_add_pad_token_note["duplicate of pipeline/util.py:add_pad_token"]:::amber
+    missing_pipeline_util_py_build_model["pipeline/util.py: build_model"]:::amber
+    missing_pipeline_util_py_build_model_note["generic AutoModel builder; training.py:build_model is LAD-aware"]:::amber
+    missing_flow_llms_base_components_py_BatchedLinear["flow_llms/base_components.py: BatchedLinear"]:::amber
+    missing_flow_llms_base_components_py_BatchedLinear_note["defined but may be unused"]:::amber
+    missing_pipeline_data_py_DataReformatter["pipeline/data.py: DataReformatter"]:::amber
+    missing_pipeline_data_py_DataReformatter_note["ABC with no concrete implementations"]:::amber
+    missing_pipeline_data_py_IdentityDataProcessor["pipeline/data.py: IdentityDataProcessor"]:::amber
+    missing_pipeline_data_py_IdentityDataProcessor_note["simple pass-through, likely test-only"]:::amber
+
+%% Missing Artifacts
+    missing_VERSION["VERSION -- MISSING"]:::red
+    missing_CHANGELOG_md["CHANGELOG.md -- MISSING"]:::red
+
+%% ============================================================
+%% SECTION 11: SHELL SCRIPT LAUNCHERS
+%% ============================================================
+
+    n_scripts_run_training_sh -->|"deepspeed"| n_training_py
+    n_scripts_run_bench_tasks_sh -->|"deepspeed"| n_benchmark_py
+    n_scripts_run_bench_code_sh -->|"deepspeed"| n_benchmark_code_py
+
+%% ============================================================
+%% SECTION 12: INTRA-PROJECT IMPORTS
+%% ============================================================
+
+    n_benchmark_py -->|"data"| n_data_py
+    n_benchmark_py -->|"pipeline"| n_pipeline___init___py
+    n_benchmark_py -->|"tasks"| n_tasks___init___py
+    n_benchmark_py -->|"training"| n_training_py
+    n_benchmark_code_py -->|"data"| n_data_py
+    n_benchmark_code_py -->|"pipeline"| n_pipeline___init___py
+    n_benchmark_code_py -->|"tasks"| n_tasks___init___py
+    n_benchmark_code_py -->|"training"| n_training_py
+    n_data_py -->|"pipeline"| n_pipeline___init___py
+    n_evaluation_py -->|"data"| n_data_py
+    n_evaluation_py -->|"pipeline"| n_pipeline___init___py
+    n_evaluation_py -->|"tasks"| n_tasks___init___py
+    n_evaluation_py -->|"training"| n_training_py
+    n_evaluation_py -->|"utils"| n_utils_py
+    n_flow_llms_base_py -->|"utils"| n_utils_py
+    n_flow_llms_llama_py -->|"utils"| n_utils_py
+    n_flow_llms_llama_components_py -->|"utils"| n_utils_py
+    n_flow_llms_qwen2_py -->|"utils"| n_utils_py
+    n_flow_llms_qwen2_components_py -->|"utils"| n_utils_py
+    n_pipeline___init___py -->|"data"| n_data_py
+    n_pipeline___init___py -->|"training"| n_training_py
+    n_pipeline_argument_py -->|"pipeline"| n_pipeline___init___py
+    n_pipeline_data_py -->|"pipeline"| n_pipeline___init___py
+    n_pipeline_inference_py -->|"pipeline"| n_pipeline___init___py
+    n_pipeline_training_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_arc_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_arc_py -->|"utils"| n_utils_py
+    n_tasks_gsm8k_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_humaneval_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_math_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_math_py -->|"utils"| n_utils_py
+    n_tasks_mbpp_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_mmlu_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_mmlu_py -->|"utils"| n_utils_py
+    n_tasks_mmlu_pro_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_mmlu_pro_py -->|"utils"| n_utils_py
+    n_tasks_piqa_py -->|"pipeline"| n_pipeline___init___py
+    n_tasks_piqa_py -->|"utils"| n_utils_py
+    n_tasks_smoltalk_py -->|"pipeline"| n_pipeline___init___py
+    n_training_py -->|"data"| n_data_py
+    n_training_py -->|"flow_llms"| n_flow_llms___init___py
+    n_training_py -->|"pipeline"| n_pipeline___init___py
+    n_training_py -->|"tasks"| n_tasks___init___py
+    n_training_py -->|"utils"| n_utils_py
+
+
+%% end of project_map.mmd
+```
