@@ -47,7 +47,7 @@ Do not add tools, services, frameworks, databases, APIs, deployment paths, or ab
 
 DOCS-INDEX provides the repository contract hierarchy.
 
-"project_map.mmd" provides the generated repository knowledge graph.
+"project_map.mmd" is the AST-generated code graph grounding AI to real repo structure, not memory.
 
 Together they form the repository memory system.
 
