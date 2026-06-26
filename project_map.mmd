@@ -19,12 +19,12 @@ flowchart TD
 %% SECTION 1: ENTRY POINTS & MODULE ARCHITECTURE
 %% ============================================================
 
-        n_benchmark_py["benchmark.py\n(average_per_dimension, compute_metrics, forward_step..."]
-        n_benchmark_code_py["benchmark_code.py\n(average_per_dimension, compute_metrics, forward..."]
+        n_benchmark_py["benchmark.py\n(average_per_dimension, compute_metrics,...)"]
+        n_benchmark_code_py["benchmark_code.py\n(average_per_dimension, compute_metrics,...)"]
         n_data_py["data.py\n(load_conversation_data_from_hf)"]
         n_evaluation_py["evaluation.py\n(forward_step, get_eval_custom_arguments, main)"]
-        n_training_py["training.py\n(build_ode_solver, build_model, train_forward_step, v...)"]
-        n_utils_py["utils.py\n(empty_gpu_cache, add_pad_token, estimate_nstep_cross...)"]
+        n_training_py["training.py\n(build_ode_solver, build_model, train_forward_step,...)"]
+        n_utils_py["utils.py\n(empty_gpu_cache, add_pad_token,...)"]
         n_utils_logging_py["utils_logging.py\n[Metrics]\n(get_mean_std_max_min_dict)"]
     subgraph entry_points [Entry Points]
         n_benchmark_py
@@ -37,13 +37,13 @@ flowchart TD
     end
 
         n_flow_llms___init___py["__init__.py"]
-        n_flow_llms_base_py["base.py\n[FrequencyEmbedder, OneHotEmbedder, MappingEmbedder, FlowT..."]
-        n_flow_llms_base_components_py["base_components.py\n[FlowModelOutputWithPast, FlowCausalLMOutputWit..."]
+        n_flow_llms_base_py["base.py\n[FrequencyEmbedder, OneHotEmbedder, MappingEmbedder,...]"]
+        n_flow_llms_base_components_py["base_components.py\n[FlowModelOutputWithPast, FlowCausalLMOutputWithPast,...]"]
         n_flow_llms_llama_py["llama.py\n[FlowLlamaModel, FlowLlamaForCausalLM]"]
-        n_flow_llms_llama_components_py["llama_components.py\n[FlowLlamaRMSNorm, FlowLlamaMLP, FlowLlamaSdpa..."]
+        n_flow_llms_llama_components_py["llama_components.py\n[FlowLlamaRMSNorm, FlowLlamaMLP, FlowLlamaSdpaAttention,...]"]
         n_flow_llms_qwen2_py["qwen2.py\n[FlowQwen2Model, FlowQwen2ForCausalLM]"]
-        n_flow_llms_qwen2_components_py["qwen2_components.py\n[FlowQwen2RMSNorm, FlowQwen2MLP, FlowQwen2Sdpa..."]
-        n_flow_llms_utils_py["utils.py\n(cosmap, polynomial_temperature, identity, constant_veloc..."]
+        n_flow_llms_qwen2_components_py["qwen2_components.py\n[FlowQwen2RMSNorm, FlowQwen2MLP, FlowQwen2SdpaAttention,...]"]
+        n_flow_llms_utils_py["utils.py\n(cosmap, polynomial_temperature, identity, constant_velocity_schedule, edm_velocity_schedule, append_dims, rotate_half, apply_rotary_to_vector)"]
     subgraph flow_augmented_llms [Flow-Augmented LLMs]
         n_flow_llms___init___py
         n_flow_llms_base_py
@@ -56,12 +56,12 @@ flowchart TD
     end
 
         n_pipeline___init___py["__init__.py"]
-        n_pipeline_argument_py["argument.py\n(str2bool, str_or_float, config_sanity_check, add_peft..."]
-        n_pipeline_data_py["data.py\n[BasicDataSource, DataProcessor, DataReformatter, Identity..."]
-        n_pipeline_decoding_util_py["decoding_util.py\n[EOSCriteria, Trie]\n(autoregressive_decode, step..."]
+        n_pipeline_argument_py["argument.py\n(str2bool, str_or_float, config_sanity_check, add_peft_arguments, add_generation_arguments, get_arguments, get_inference_arguments)"]
+        n_pipeline_data_py["data.py\n[BasicDataSource, DataProcessor, DataReformatter,...]\n(load_data_from_jsonl)"]
+        n_pipeline_decoding_util_py["decoding_util.py\n[EOSCriteria, Trie]\n(autoregressive_decode, step_decode, temperature_processor, good_token_ids_processor, bad_token_ids_processor, penalty_processor, top_k_processor, top_p_processor)"]
         n_pipeline_inference_py["inference.py\n[InferencePipeline]"]
         n_pipeline_training_py["training.py\n[TrainingPipeline]"]
-        n_pipeline_util_py["util.py\n[StatisticsTracker]\n(set_logging_config, set_random_seed,..."]
+        n_pipeline_util_py["util.py\n[StatisticsTracker]\n(set_logging_config, set_random_seed, get_number_of_parameters, is_rank_0, add_pad_token, build_tokenizer, build_model, build_peft_model, build_optimizer, build_lr_scheduler, convert_to_numpy, convert_to_torch, get_vector_stats, convert_if_dictconfig)"]
     subgraph training___inference_pipeline [Training / Inference Pipeline]
         n_pipeline___init___py
         n_pipeline_argument_py
@@ -75,7 +75,7 @@ flowchart TD
         n_tasks___init___py["__init__.py"]
         n_tasks_arc_py["arc.py\n[ARCDataProcessor, ARCEvalProcessor]"]
         n_tasks_base_py["base.py\n[Task]"]
-        n_tasks_constants_py["constants.py\n(get_shared_category_dictionary, get_total_num_catego..."]
+        n_tasks_constants_py["constants.py\n(get_shared_category_dictionary, get_total_num_categories)"]
         n_tasks_gsm8k_py["gsm8k.py\n[GSM8kDataProcessor, GSM8kEvalProcessor]"]
         n_tasks_humaneval_py["humaneval.py\n[HumanEvalDataProcessor, InstructHumanEvalDataProcessor]"]
         n_tasks_math_py["math.py\n[MATHDataProcessor, MATHEvalProcessor]"]
@@ -85,7 +85,7 @@ flowchart TD
         n_tasks_piqa_py["piqa.py\n[PIQADataProcessor, PIQAEvalProcessor]"]
         n_tasks_smoltalk_py["smoltalk.py\n[SmolTalkDataProcessor]"]
         n_tasks_templates_py["templates.py"]
-        n_tasks_utils_py["utils.py\n(extract_first_choice_answer, extract_last_number, fix_fr..."]
+        n_tasks_utils_py["utils.py\n(extract_first_choice_answer, extract_last_number, fix_fracs, fix_a_slash_b, remove_right_units, fix_sqrt, strip_math_latex_string, extract_last_boxed_only_string, remove_boxed, extract_fraction_components)"]
     subgraph task_processors___evaluators [Task Processors & Evaluators]
         n_tasks___init___py
         n_tasks_arc_py
@@ -141,7 +141,7 @@ flowchart TD
         n_scripts_run_training_sh
     end
 
-        n_tools_generate_project_map_py["generate_project_map.py\n[FunctionAnalyzer, MermaidBuilder]\n(read_..."]
+        n_tools_generate_project_map_py["generate_project_map.py\n[FunctionAnalyzer, MermaidBuilder]\n(read_file, rel_path, safe_id, node_id, collect, parse_ast, mermaid_escape, resolve_name, analyze_function_body, method_signature, extract_deep_class_info, extract_top_functions, extract_file_imports, build_file_index, resolve_call_targets, detect_unused, generate, verify, main)"]
     subgraph developer_tools [Developer Tools]
         n_tools_generate_project_map_py
     end
@@ -176,16 +176,16 @@ flowchart TD
     n_tasks_piqa_py -->|"Task"| n_tasks_base_py
     n_tasks_smoltalk_py -->|"DataProcessor"| n_pipeline_data_py
     n_tasks_smoltalk_py -->|"Task"| n_tasks_base_py
-        n_tasks_arc_py_ARCDataProcessor_init["ARCDataProcessor.__init__(config: Namespace, filepath: str, tokeniz..."]
+        n_tasks_arc_py_ARCDataProcessor_init["ARCDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_arc_py -.->|"__init__"| n_tasks_arc_py_ARCDataProcessor_init
         n_tasks_arc_py_ARCDataProcessor_initializer["ARCDataProcessor.initializer()"]
     n_tasks_arc_py -.->|"initializer"| n_tasks_arc_py_ARCDataProcessor_initializer
         n_tasks_arc_py_ARCDataProcessor_line2data["ARCDataProcessor.line2data(line: dict)"]
     n_tasks_arc_py -.->|"line2data"| n_tasks_arc_py_ARCDataProcessor_line2data
-        n_tasks_arc_py_ARCEvalProcessor_extract_answer_from_completion["ARCEvalProcessor.extract_answer_from_completion(completion: str, ch..."]
+        n_tasks_arc_py_ARCEvalProcessor_extract_answer_from_completion["ARCEvalProcessor.extract_answer_from_completion(completion: str, choices: list[]) [@staticmethod]"]
     n_tasks_arc_py -.->|"extract_answer_from_completion"| n_tasks_arc_py_ARCEvalProcessor_extract_answer_from_completion
     n_tasks_arc_py_ARCEvalProcessor_extract_answer_from_completion -.->|"extract_first_choice"| n_tasks_utils_py
-        n_pipeline_data_py_BasicDataSource_init["BasicDataSource.__init__(stage: str, data: List, tokenizer: object,..."]
+        n_pipeline_data_py_BasicDataSource_init["BasicDataSource.__init__(stage: str, data: List, tokenizer: object, config: Namespace)"]
     n_pipeline_data_py -.->|"__init__"| n_pipeline_data_py_BasicDataSource_init
         n_pipeline_data_py_BasicDataSource_len["BasicDataSource.__len__()"]
     n_pipeline_data_py -.->|"__len__"| n_pipeline_data_py_BasicDataSource_len
@@ -193,7 +193,7 @@ flowchart TD
     n_pipeline_data_py -.->|"__getitem__"| n_pipeline_data_py_BasicDataSource_getitem
         n_pipeline_data_py_BasicDataSource_collate_fn["BasicDataSource.collate_fn(batch_data)"]
     n_pipeline_data_py -.->|"collate_fn"| n_pipeline_data_py_BasicDataSource_collate_fn
-        n_flow_llms_base_components_py_BatchedLinear_init["BatchedLinear.__init__(in_features: int, out_features: int, num_par..."]
+        n_flow_llms_base_components_py_BatchedLinear_init["BatchedLinear.__init__(in_features: int, out_features: int, num_parallel: int, batched_inputs: bool, bias: bool=Constant(value=, device=Constant(value=, dtype=Constant(value=)"]
     n_flow_llms_base_components_py -.->|"__init__"| n_flow_llms_base_components_py_BatchedLinear_init
         n_flow_llms_base_components_py_BatchedLinear_reset_parameters["BatchedLinear.reset_parameters()"]
     n_flow_llms_base_components_py -.->|"reset_parameters"| n_flow_llms_base_components_py_BatchedLinear_reset_parameters
@@ -203,11 +203,11 @@ flowchart TD
     n_flow_llms_base_components_py -.->|"forward"| n_flow_llms_base_components_py_BatchedLinear_forward
         n_flow_llms_base_components_py_BatchedLinear_extra_repr["BatchedLinear.extra_repr()"]
     n_flow_llms_base_components_py -.->|"extra_repr"| n_flow_llms_base_components_py_BatchedLinear_extra_repr
-        n_flow_llms_base_py_ConditioningHead_init["ConditioningHead.__init__(hidden_dim, num_hidden_components, num_la..."]
+        n_flow_llms_base_py_ConditioningHead_init["ConditioningHead.__init__(hidden_dim, num_hidden_components, num_layers, conditioning_dim)"]
     n_flow_llms_base_py -.->|"__init__"| n_flow_llms_base_py_ConditioningHead_init
         n_flow_llms_base_py_ConditioningHead_forward["ConditioningHead.forward(c)"]
     n_flow_llms_base_py -.->|"forward"| n_flow_llms_base_py_ConditioningHead_forward
-        n_pipeline_data_py_DataProcessor_init["DataProcessor.__init__(config: Namespace, filepath: str, tokenizer:..."]
+        n_pipeline_data_py_DataProcessor_init["DataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_pipeline_data_py -.->|"__init__"| n_pipeline_data_py_DataProcessor_init
         n_pipeline_data_py_DataProcessor_initializer["DataProcessor.initializer()"]
     n_pipeline_data_py -.->|"initializer"| n_pipeline_data_py_DataProcessor_initializer
@@ -215,7 +215,7 @@ flowchart TD
     n_pipeline_data_py -.->|"line2data"| n_pipeline_data_py_DataProcessor_line2data
         n_pipeline_data_py_DataProcessor_repr["DataProcessor.__repr__()"]
     n_pipeline_data_py -.->|"__repr__"| n_pipeline_data_py_DataProcessor_repr
-        n_pipeline_data_py_DataReformatter_init["DataReformatter.__init__(config: Namespace, filepath: str, tokenize..."]
+        n_pipeline_data_py_DataReformatter_init["DataReformatter.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_pipeline_data_py -.->|"__init__"| n_pipeline_data_py_DataReformatter_init
         n_pipeline_data_py_DataReformatter_initializer["DataReformatter.initializer()"]
     n_pipeline_data_py -.->|"initializer"| n_pipeline_data_py_DataReformatter_initializer
@@ -223,142 +223,148 @@ flowchart TD
     n_pipeline_data_py -.->|"format_data"| n_pipeline_data_py_DataReformatter_format_data
         n_pipeline_decoding_util_py_EOSCriteria_init["EOSCriteria.__init__(tokenizer)"]
     n_pipeline_decoding_util_py -.->|"__init__"| n_pipeline_decoding_util_py_EOSCriteria_init
-        n_pipeline_decoding_util_py_EOSCriteria_call["EOSCriteria.__call__(input_ids: torch.LongTensor, scores: torch.Flo..."]
+        n_pipeline_decoding_util_py_EOSCriteria_call["EOSCriteria.__call__(input_ids: torch.LongTensor, scores: torch.FloatTensor)"]
     n_pipeline_decoding_util_py -.->|"__call__"| n_pipeline_decoding_util_py_EOSCriteria_call
-        n_flow_llms_base_py_FlowLanguageModel_init["FlowLanguageModel.__init__(config, main_model_hidden_dim: int, flow..."]
+        n_flow_llms_base_py_FlowLanguageModel_init["FlowLanguageModel.__init__(config, main_model_hidden_dim: int, flow_representation_space: str=Constant(value=, flow_representation_dim: tp.Optional[]=Constant(value=, flow_representation_num_layers: tp.Optional[]=Constant(value=, flow_representation_normalize: bool=Constant(value=, flow_representation_rescaling: tp.Optional[]=Constant(value=, noise_rescaling: float=Constant(value=,..."]
     n_flow_llms_base_py -.->|"__init__"| n_flow_llms_base_py_FlowLanguageModel_init
     n_flow_llms_base_py_FlowLanguageModel_init -.->|"SimpleMLP"| n_flow_llms_base_components_py
     n_flow_llms_base_py_FlowLanguageModel_init -.->|"polynomial_temperatu"| n_flow_llms_utils_py
-        n_flow_llms_base_py_FlowLanguageModel_get_nstep_temperature["FlowLanguageModel.get_nstep_temperature(t, override_temperature=Con..."]
+        n_flow_llms_base_py_FlowLanguageModel_get_nstep_temperature["FlowLanguageModel.get_nstep_temperature(t, override_temperature=Constant(value=)"]
     n_flow_llms_base_py -.->|"get_nstep_temperature"| n_flow_llms_base_py_FlowLanguageModel_get_nstep_temperature
         n_flow_llms_base_py_FlowLanguageModel_init_flow_weights["FlowLanguageModel.init_flow_weights()"]
     n_flow_llms_base_py -.->|"init_flow_weights"| n_flow_llms_base_py_FlowLanguageModel_init_flow_weights
         n_flow_llms_base_py_FlowLanguageModel_make_flow_representation_embedder["FlowLanguageModel.make_flow_representation_embedder(vocab_size)"]
     n_flow_llms_base_py -.->|"make_flow_representation_embedder"| n_flow_llms_base_py_FlowLanguageModel_make_flow_representation_embedder
-        n_flow_llms_base_py_FlowLanguageModel_get_flow_representation_for_tokens["FlowLanguageModel.get_flow_representation_for_tokens(input_ids: tor..."]
+        n_flow_llms_base_py_FlowLanguageModel_get_flow_representation_for_tokens["FlowLanguageModel.get_flow_representation_for_tokens(input_ids: torch.Tensor, inputs_embeds: tp.Optional[]=Constant(value=)"]
     n_flow_llms_base_py -.->|"get_flow_representation_for_tokens"| n_flow_llms_base_py_FlowLanguageModel_get_flow_representation_for_tokens
-        n_flow_llms_base_py_FlowLanguageModel_get_weighted_flow_representation_for_logits["FlowLanguageModel.get_weighted_flow_representation_for_logits(logit..."]
+        n_flow_llms_base_py_FlowLanguageModel_get_weighted_flow_representation_for_logits["FlowLanguageModel.get_weighted_flow_representation_for_logits(logits, sample_from_logits: bool=Constant(value=, normalize_weighted_outputs: bool=Constant(value=, clamp_predictions: bool=Constant(value=, temperature: float=Constant(value=)"]
     n_flow_llms_base_py -.->|"get_weighted_flow_representation_for_logits"| n_flow_llms_base_py_FlowLanguageModel_get_weighted_flow_representation_for_logits
-        n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_init["FlowLlamaDecoderLayer.__init__(config: LlamaConfig, layer_idx: int,..."]
+        n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_init["FlowLlamaDecoderLayer.__init__(config: LlamaConfig, layer_idx: int, modulate_hidden_states: bool, full_dit_modulation: bool, timestep_modulation_hidden_size: int, freeze_modulation_at_flow_start: bool, memory_efficient_implementation: bool=Constant(value=, separate_flow_params: bool=Constant(value=, separate_flow_params_with_lora: bool=Constant(value=, flow_lora_rank: int=Constant(value=,..."]
     n_flow_llms_llama_components_py -.->|"__init__"| n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_init
     n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_init -.->|"ConditioningHead"| n_flow_llms_base_py
         n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_init_flow_weights["FlowLlamaDecoderLayer.init_flow_weights()"]
     n_flow_llms_llama_components_py -.->|"init_flow_weights"| n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_init_flow_weights
-        n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_forward["FlowLlamaDecoderLayer.forward(hidden_states: torch.Tensor, flow_hid..."]
+        n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_forward["FlowLlamaDecoderLayer.forward(hidden_states: torch.Tensor, flow_hidden_states: torch.Tensor, use_flow: bool, modulation_embeddings: torch.Tensor, modulation_embeddings_at_flow_start: tp.Optional[]=Constant(value=, attention_mask: tp.Optional[]=Constant(value=, position_ids: tp.Optional[]=Constant(value=, past_key_value: tp.Optional[]=Constant(value=, output_attentions:..."]
     n_flow_llms_llama_components_py -.->|"forward"| n_flow_llms_llama_components_py_FlowLlamaDecoderLayer_forward
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_init["FlowLlamaForCausalLM.__init__(model_or_model_id, base_params_to_fre..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_init["FlowLlamaForCausalLM.__init__(model_or_model_id, base_params_to_freeze: tp.Optional[]=Constant(value=, model_loading_kwargs: tp.Optional[]=Constant(value=, default_generation_nstep: tp.Optional[]=Constant(value=, noise_schedule=Constant(value=, minimum_training_noise: tp.Optional[]=Constant(value=, minimum_training_noise_units=Constant(value=, velocity_schedule=Constant(value=,..."]
     n_flow_llms_llama_py -.->|"__init__"| n_flow_llms_llama_py_FlowLlamaForCausalLM_init
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_compute_velocity["FlowLlamaForCausalLM.compute_velocity(input_ids: torch.LongTensor=C..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_compute_velocity["FlowLlamaForCausalLM.compute_velocity(input_ids: torch.LongTensor=Constant(value=, timesteps: torch.Tensor=Constant(value=, class_labels: torch.LongTensor=Constant(value=, flow_representation_embeds: tp.Optional[]=Constant(value=, attention_mask: tp.Optional[]=Constant(value=, position_ids: tp.Optional[]=Constant(value=, past_key_values: tp.Optional[]=Constant(value=, inputs_embeds:..."]
     n_flow_llms_llama_py -.->|"compute_velocity"| n_flow_llms_llama_py_FlowLlamaForCausalLM_compute_velocity
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_nstep_inference["FlowLlamaForCausalLM.nstep_inference(input_ids, class_labels: tp.Op..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_nstep_inference["FlowLlamaForCausalLM.nstep_inference(input_ids, class_labels: tp.Optional[]=Constant(value=, attention_mask: tp.Optional[]=Constant(value=, position_ids: tp.Optional[]=Constant(value=, initial_flow_representation_embeds: Optional[]=Constant(value=, start_timestep: float=Constant(value=, ode_kwargs: tp.Optional[]=Constant(value=, final_timestep: Optional[]=Constant(value=, ode_steps:..."]
     n_flow_llms_llama_py -.->|"nstep_inference"| n_flow_llms_llama_py_FlowLlamaForCausalLM_nstep_inference
     n_flow_llms_llama_py_FlowLlamaForCausalLM_nstep_inference -.->|"FlowInferenceOutput"| n_flow_llms_base_components_py
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_get_flow_representation_for_tokens["FlowLlamaForCausalLM.get_flow_representation_for_tokens(input_ids, ..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_get_flow_representation_for_tokens["FlowLlamaForCausalLM.get_flow_representation_for_tokens(input_ids, inputs_embeds: tp.Optional[]=Constant(value=)"]
     n_flow_llms_llama_py -.->|"get_flow_representation_for_tokens"| n_flow_llms_llama_py_FlowLlamaForCausalLM_get_flow_representation_for_tokens
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_load_partial_state_dict["FlowLlamaForCausalLM.load_partial_state_dict(state_dict, keys_subse..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_load_partial_state_dict["FlowLlamaForCausalLM.load_partial_state_dict(state_dict, keys_subset=Constant(value=)"]
     n_flow_llms_llama_py -.->|"load_partial_state_dict"| n_flow_llms_llama_py_FlowLlamaForCausalLM_load_partial_state_dict
         n_flow_llms_llama_py_FlowLlamaForCausalLM_init_flow_weights_and_freeze_model["FlowLlamaForCausalLM.init_flow_weights_and_freeze_model()"]
     n_flow_llms_llama_py -.->|"init_flow_weights_and_freeze_model"| n_flow_llms_llama_py_FlowLlamaForCausalLM_init_flow_weights_and_freeze_model
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_generate["FlowLlamaForCausalLM.generate(inputs: Optional[]=Constant(value=, g..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_generate["FlowLlamaForCausalLM.generate(inputs: Optional[]=Constant(value=, generation_config: Optional[]=Constant(value=, logits_processor: Optional[]=Constant(value=, stopping_criteria: Optional[]=Constant(value=, prefix_allowed_tokens_fn: Optional[]=Constant(value=, synced_gpus: Optional[]=Constant(value=, assistant_model: Optional[]=Constant(value=, streamer: Optional[]=Constant(value=,..."]
     n_flow_llms_llama_py -.->|"generate"| n_flow_llms_llama_py_FlowLlamaForCausalLM_generate
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_prepare_inputs_for_generation["FlowLlamaForCausalLM.prepare_inputs_for_generation(input_ids, past_..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_prepare_inputs_for_generation["FlowLlamaForCausalLM.prepare_inputs_for_generation(input_ids, past_key_values=Constant(value=, attention_mask=Constant(value=, inputs_embeds=Constant(value=, cache_position=Constant(value=, position_ids=Constant(value=, use_cache=Constant(value=)"]
     n_flow_llms_llama_py -.->|"prepare_inputs_for_generation"| n_flow_llms_llama_py_FlowLlamaForCausalLM_prepare_inputs_for_generation
-        n_flow_llms_llama_py_FlowLlamaForCausalLM_more["+2 more methods"]
-    n_flow_llms_llama_py -.->|"..."| n_flow_llms_llama_py_FlowLlamaForCausalLM_more
-        n_flow_llms_llama_components_py_FlowLlamaMLP_init["FlowLlamaMLP.__init__(config, memory_efficient: bool=Constant(value..."]
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_sample_timestep_and_flow_embeds["FlowLlamaForCausalLM.sample_timestep_and_flow_embeds(labels: torch.LongTensor, timesteps: torch.Tensor=Constant(value=, ignore_index: tp.Optional[]=UnaryOp(op=USub)"]
+    n_flow_llms_llama_py -.->|"sample_timestep_and_flow_embeds"| n_flow_llms_llama_py_FlowLlamaForCausalLM_sample_timestep_and_flow_embeds
+        n_flow_llms_llama_py_FlowLlamaForCausalLM_forward["FlowLlamaForCausalLM.forward(input_ids: torch.LongTensor=Constant(value=, timesteps: torch.Tensor=Constant(value=, class_labels: torch.LongTensor=Constant(value=, flow_representation_embeds: tp.Optional[]=Constant(value=, attention_mask: tp.Optional[]=Constant(value=, position_ids: tp.Optional[]=Constant(value=, past_key_values: tp.Optional[]=Constant(value=, inputs_embeds:..."]
+    n_flow_llms_llama_py -.->|"forward"| n_flow_llms_llama_py_FlowLlamaForCausalLM_forward
+    n_flow_llms_llama_py_FlowLlamaForCausalLM_forward -.->|"FlowCausalLMOutputWi"| n_flow_llms_base_components_py
+        n_flow_llms_llama_components_py_FlowLlamaMLP_init["FlowLlamaMLP.__init__(config, memory_efficient: bool=Constant(value=, separate_flow_params: bool=Constant(value=, separate_flow_params_with_lora: bool=Constant(value=, flow_lora_rank: int=Constant(value=, flow_lora_alpha: tp.Optional[]=Constant(value=)"]
     n_flow_llms_llama_components_py -.->|"__init__"| n_flow_llms_llama_components_py_FlowLlamaMLP_init
     n_flow_llms_llama_components_py_FlowLlamaMLP_init -.->|"LoRA"| n_flow_llms_base_components_py
         n_flow_llms_llama_components_py_FlowLlamaMLP_mlp_forward["FlowLlamaMLP.mlp_forward(x, gate_proj, up_proj, down_proj)"]
     n_flow_llms_llama_components_py -.->|"mlp_forward"| n_flow_llms_llama_components_py_FlowLlamaMLP_mlp_forward
-        n_flow_llms_llama_components_py_FlowLlamaMLP_forward["FlowLlamaMLP.forward(x, flow_hidden_states: Optional[]=Constant(val..."]
+        n_flow_llms_llama_components_py_FlowLlamaMLP_forward["FlowLlamaMLP.forward(x, flow_hidden_states: Optional[]=Constant(value=, use_flow: bool=Constant(value=, compute_only_flow: bool=Constant(value=)"]
     n_flow_llms_llama_components_py -.->|"forward"| n_flow_llms_llama_components_py_FlowLlamaMLP_forward
-        n_flow_llms_llama_py_FlowLlamaModel_init["FlowLlamaModel.__init__(config: LlamaConfig, flow_representation_sp..."]
+        n_flow_llms_llama_py_FlowLlamaModel_init["FlowLlamaModel.__init__(config: LlamaConfig, flow_representation_space: str=Constant(value=, flow_representation_dim: tp.Optional[]=Constant(value=, flow_representation_num_layers: tp.Optional[]=Constant(value=, flow_representation_normalize: bool=Constant(value=, flow_representation_rescaling: tp.Optional[]=Constant(value=, noise_rescaling: float=Constant(value=, flow_to_lm_translation_depth:..."]
     n_flow_llms_llama_py -.->|"__init__"| n_flow_llms_llama_py_FlowLlamaModel_init
     n_flow_llms_llama_py_FlowLlamaModel_init -.->|"ConditioningHead"| n_flow_llms_base_py
     n_flow_llms_llama_py_FlowLlamaModel_init -.->|"FlowLlamaDecoderLaye"| n_flow_llms_llama_components_py
         n_flow_llms_llama_py_FlowLlamaModel_init_flow_weights["FlowLlamaModel.init_flow_weights()"]
     n_flow_llms_llama_py -.->|"init_flow_weights"| n_flow_llms_llama_py_FlowLlamaModel_init_flow_weights
     n_flow_llms_llama_py_FlowLlamaModel_init_flow_weights -.->|"FlowLanguageModel.in"| n_flow_llms_base_py
-        n_flow_llms_llama_py_FlowLlamaModel_forward["FlowLlamaModel.forward(input_ids: torch.LongTensor=Constant(value=,..."]
+        n_flow_llms_llama_py_FlowLlamaModel_forward["FlowLlamaModel.forward(input_ids: torch.LongTensor=Constant(value=, timesteps: torch.FloatTensor=Constant(value=, class_labels: torch.LongTensor=Constant(value=, flow_representation_embeds: torch.FloatTensor=Constant(value=, attention_mask: tp.Optional[]=Constant(value=, position_ids: tp.Optional[]=Constant(value=, past_key_values: tp.Optional[]=Constant(value=, inputs_embeds:..."]
     n_flow_llms_llama_py -.->|"forward"| n_flow_llms_llama_py_FlowLlamaModel_forward
     n_flow_llms_llama_py_FlowLlamaModel_forward -.->|"FlowModelOutputWithP"| n_flow_llms_base_components_py
-        n_flow_llms_llama_components_py_FlowLlamaRMSNorm_init["FlowLlamaRMSNorm.__init__(hidden_size: int, freeze_modulation_at_fl..."]
+        n_flow_llms_llama_components_py_FlowLlamaRMSNorm_init["FlowLlamaRMSNorm.__init__(hidden_size: int, freeze_modulation_at_flow_start: bool, eps=Constant(value=)"]
     n_flow_llms_llama_components_py -.->|"__init__"| n_flow_llms_llama_components_py_FlowLlamaRMSNorm_init
-        n_flow_llms_llama_components_py_FlowLlamaRMSNorm_forward["FlowLlamaRMSNorm.forward(hidden_states, modulate_weights: bool=Cons..."]
+        n_flow_llms_llama_components_py_FlowLlamaRMSNorm_forward["FlowLlamaRMSNorm.forward(hidden_states, modulate_weights: bool=Constant(value=, modulation_weight: tp.Optional[]=Constant(value=, modulation_weight_at_flow_start: tp.Optional[]=Constant(value=)"]
     n_flow_llms_llama_components_py -.->|"forward"| n_flow_llms_llama_components_py_FlowLlamaRMSNorm_forward
-        n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_init["FlowLlamaSdpaAttention.__init__(config: LlamaConfig, layer_idx: Opt..."]
+        n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_init["FlowLlamaSdpaAttention.__init__(config: LlamaConfig, layer_idx: Optional[]=Constant(value=, memory_efficient: bool=Constant(value=, separate_flow_params: bool=Constant(value=, separate_flow_params_with_lora: bool=Constant(value=, flow_lora_rank: int=Constant(value=, flow_lora_alpha: tp.Optional[]=Constant(value=)"]
     n_flow_llms_llama_components_py -.->|"__init__"| n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_init
     n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_init -.->|"LoRA"| n_flow_llms_base_components_py
-        n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward_only_flow["FlowLlamaSdpaAttention.forward_only_flow(flow_hidden_states: Option..."]
+        n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward_only_flow["FlowLlamaSdpaAttention.forward_only_flow(flow_hidden_states: Optional[]=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_value: Cache=Constant(value=, output_attentions: bool=Constant(value=, position_embeddings: Optional[]=Constant(value=)"]
     n_flow_llms_llama_components_py -.->|"forward_only_flow"| n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward_only_flow
     n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward_only_flow -.->|"apply_rotary_to_vect"| n_flow_llms_utils_py
-        n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward["FlowLlamaSdpaAttention.forward(hidden_states: torch.Tensor, flow_hi..."]
+        n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward["FlowLlamaSdpaAttention.forward(hidden_states: torch.Tensor, flow_hidden_states: Optional[]=Constant(value=, use_flow: bool=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_value: Optional[]=Constant(value=, output_attentions: bool=Constant(value=, use_cache: bool=Constant(value=, cache_position: Optional[]=Constant(value=,..."]
     n_flow_llms_llama_components_py -.->|"forward"| n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward
     n_flow_llms_llama_components_py_FlowLlamaSdpaAttention_forward -.->|"apply_rotary_to_vect"| n_flow_llms_utils_py
-        n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_init["FlowQwen2DecoderLayer.__init__(config: Qwen2Config, layer_idx: int,..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_init["FlowQwen2DecoderLayer.__init__(config: Qwen2Config, layer_idx: int, modulate_hidden_states: bool, full_dit_modulation: bool, timestep_modulation_hidden_size: int, freeze_modulation_at_flow_start: bool, separate_flow_params: bool=Constant(value=, separate_flow_params_with_lora: bool=Constant(value=, flow_lora_rank: int=Constant(value=, flow_lora_alpha: Optional[]=Constant(value=)"]
     n_flow_llms_qwen2_components_py -.->|"__init__"| n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_init
     n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_init -.->|"ConditioningHead"| n_flow_llms_base_py
         n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_init_flow_weights["FlowQwen2DecoderLayer.init_flow_weights()"]
     n_flow_llms_qwen2_components_py -.->|"init_flow_weights"| n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_init_flow_weights
-        n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_forward["FlowQwen2DecoderLayer.forward(hidden_states: torch.Tensor, flow_hid..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_forward["FlowQwen2DecoderLayer.forward(hidden_states: torch.Tensor, flow_hidden_states: torch.Tensor, use_flow: bool, modulation_embeddings: torch.Tensor, modulation_embeddings_at_flow_start: Optional[]=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_value: Optional[]=Constant(value=, output_attentions: Optional[]=Constant(value=,..."]
     n_flow_llms_qwen2_components_py -.->|"forward"| n_flow_llms_qwen2_components_py_FlowQwen2DecoderLayer_forward
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_init["FlowQwen2ForCausalLM.__init__(model_or_model_id, base_params_to_fre..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_init["FlowQwen2ForCausalLM.__init__(model_or_model_id, base_params_to_freeze: Optional[]=Constant(value=, model_loading_kwargs: Optional[]=Constant(value=, default_generation_nstep: Optional[]=Constant(value=, noise_schedule=Constant(value=, minimum_training_noise: Optional[]=Constant(value=, minimum_training_noise_units=Constant(value=, velocity_schedule=Constant(value=, flow_representation_space:..."]
     n_flow_llms_qwen2_py -.->|"__init__"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_init
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_compute_velocity["FlowQwen2ForCausalLM.compute_velocity(input_ids: torch.LongTensor=C..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_compute_velocity["FlowQwen2ForCausalLM.compute_velocity(input_ids: torch.LongTensor=Constant(value=, timesteps: torch.Tensor=Constant(value=, class_labels: torch.LongTensor=Constant(value=, flow_representation_embeds: Optional[]=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_values: Optional[]=Constant(value=, inputs_embeds:..."]
     n_flow_llms_qwen2_py -.->|"compute_velocity"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_compute_velocity
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_nstep_inference["FlowQwen2ForCausalLM.nstep_inference(input_ids, class_labels: Optio..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_nstep_inference["FlowQwen2ForCausalLM.nstep_inference(input_ids, class_labels: Optional[]=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, initial_flow_representation_embeds: Optional[]=Constant(value=, start_timestep: float=Constant(value=, ode_kwargs: Optional[]=Constant(value=, final_timestep: Optional[]=Constant(value=, ode_steps: int=Constant(value=,..."]
     n_flow_llms_qwen2_py -.->|"nstep_inference"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_nstep_inference
     n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_nstep_inference -.->|"FlowInferenceOutput"| n_flow_llms_base_components_py
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_get_flow_representation_for_tokens["FlowQwen2ForCausalLM.get_flow_representation_for_tokens(input_ids, ..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_get_flow_representation_for_tokens["FlowQwen2ForCausalLM.get_flow_representation_for_tokens(input_ids, inputs_embeds: Optional[]=Constant(value=)"]
     n_flow_llms_qwen2_py -.->|"get_flow_representation_for_tokens"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_get_flow_representation_for_tokens
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_load_partial_state_dict["FlowQwen2ForCausalLM.load_partial_state_dict(state_dict, keys_subse..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_load_partial_state_dict["FlowQwen2ForCausalLM.load_partial_state_dict(state_dict, keys_subset=Constant(value=)"]
     n_flow_llms_qwen2_py -.->|"load_partial_state_dict"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_load_partial_state_dict
         n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_init_flow_weights_and_freeze_model["FlowQwen2ForCausalLM.init_flow_weights_and_freeze_model()"]
     n_flow_llms_qwen2_py -.->|"init_flow_weights_and_freeze_model"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_init_flow_weights_and_freeze_model
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_generate["FlowQwen2ForCausalLM.generate(inputs: Optional[]=Constant(value=, g..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_generate["FlowQwen2ForCausalLM.generate(inputs: Optional[]=Constant(value=, generation_config: Optional[]=Constant(value=, logits_processor: Optional[]=Constant(value=, stopping_criteria: Optional[]=Constant(value=, prefix_allowed_tokens_fn: Optional[]=Constant(value=, synced_gpus: Optional[]=Constant(value=, assistant_model: Optional[]=Constant(value=, streamer: Optional[]=Constant(value=,..."]
     n_flow_llms_qwen2_py -.->|"generate"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_generate
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_prepare_inputs_for_generation["FlowQwen2ForCausalLM.prepare_inputs_for_generation(input_ids, past_..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_prepare_inputs_for_generation["FlowQwen2ForCausalLM.prepare_inputs_for_generation(input_ids, past_key_values=Constant(value=, attention_mask=Constant(value=, inputs_embeds=Constant(value=, cache_position=Constant(value=, position_ids=Constant(value=, use_cache=Constant(value=)"]
     n_flow_llms_qwen2_py -.->|"prepare_inputs_for_generation"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_prepare_inputs_for_generation
-        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_more["+2 more methods"]
-    n_flow_llms_qwen2_py -.->|"..."| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_more
-        n_flow_llms_qwen2_components_py_FlowQwen2MLP_init["FlowQwen2MLP.__init__(config, separate_flow_params: bool=Constant(v..."]
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_sample_timestep_and_flow_embeds["FlowQwen2ForCausalLM.sample_timestep_and_flow_embeds(labels: torch.LongTensor, timesteps: torch.Tensor=Constant(value=, ignore_index: Optional[]=UnaryOp(op=USub)"]
+    n_flow_llms_qwen2_py -.->|"sample_timestep_and_flow_embeds"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_sample_timestep_and_flow_embeds
+        n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_forward["FlowQwen2ForCausalLM.forward(input_ids: torch.LongTensor=Constant(value=, timesteps: torch.Tensor=Constant(value=, class_labels: torch.LongTensor=Constant(value=, flow_representation_embeds: Optional[]=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_values: Optional[]=Constant(value=, inputs_embeds: Optional[]=Constant(value=,..."]
+    n_flow_llms_qwen2_py -.->|"forward"| n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_forward
+    n_flow_llms_qwen2_py_FlowQwen2ForCausalLM_forward -.->|"FlowCausalLMOutputWi"| n_flow_llms_base_components_py
+        n_flow_llms_qwen2_components_py_FlowQwen2MLP_init["FlowQwen2MLP.__init__(config, separate_flow_params: bool=Constant(value=, separate_flow_params_with_lora: bool=Constant(value=, flow_lora_rank: int=Constant(value=, flow_lora_alpha: Optional[]=Constant(value=)"]
     n_flow_llms_qwen2_components_py -.->|"__init__"| n_flow_llms_qwen2_components_py_FlowQwen2MLP_init
     n_flow_llms_qwen2_components_py_FlowQwen2MLP_init -.->|"LoRA"| n_flow_llms_base_components_py
         n_flow_llms_qwen2_components_py_FlowQwen2MLP_mlp_forward["FlowQwen2MLP.mlp_forward(x, gate_proj, up_proj, down_proj)"]
     n_flow_llms_qwen2_components_py -.->|"mlp_forward"| n_flow_llms_qwen2_components_py_FlowQwen2MLP_mlp_forward
-        n_flow_llms_qwen2_components_py_FlowQwen2MLP_forward["FlowQwen2MLP.forward(x: torch.Tensor, flow_hidden_states: Optional[..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2MLP_forward["FlowQwen2MLP.forward(x: torch.Tensor, flow_hidden_states: Optional[]=Constant(value=, use_flow: bool=Constant(value=, compute_only_flow: bool=Constant(value=)"]
     n_flow_llms_qwen2_components_py -.->|"forward"| n_flow_llms_qwen2_components_py_FlowQwen2MLP_forward
-        n_flow_llms_qwen2_py_FlowQwen2Model_init["FlowQwen2Model.__init__(config: Qwen2Config, flow_representation_sp..."]
+        n_flow_llms_qwen2_py_FlowQwen2Model_init["FlowQwen2Model.__init__(config: Qwen2Config, flow_representation_space: str=Constant(value=, flow_representation_dim: Optional[]=Constant(value=, flow_representation_num_layers: Optional[]=Constant(value=, flow_representation_normalize: bool=Constant(value=, flow_representation_rescaling: Optional[]=Constant(value=, noise_rescaling: float=Constant(value=, flow_to_lm_translation_depth:..."]
     n_flow_llms_qwen2_py -.->|"__init__"| n_flow_llms_qwen2_py_FlowQwen2Model_init
     n_flow_llms_qwen2_py_FlowQwen2Model_init -.->|"ConditioningHead"| n_flow_llms_base_py
     n_flow_llms_qwen2_py_FlowQwen2Model_init -.->|"FlowQwen2DecoderLaye"| n_flow_llms_qwen2_components_py
         n_flow_llms_qwen2_py_FlowQwen2Model_init_flow_weights["FlowQwen2Model.init_flow_weights()"]
     n_flow_llms_qwen2_py -.->|"init_flow_weights"| n_flow_llms_qwen2_py_FlowQwen2Model_init_flow_weights
     n_flow_llms_qwen2_py_FlowQwen2Model_init_flow_weights -.->|"FlowLanguageModel.in"| n_flow_llms_base_py
-        n_flow_llms_qwen2_py_FlowQwen2Model_forward["FlowQwen2Model.forward(input_ids: torch.LongTensor=Constant(value=,..."]
+        n_flow_llms_qwen2_py_FlowQwen2Model_forward["FlowQwen2Model.forward(input_ids: torch.LongTensor=Constant(value=, timesteps: torch.FloatTensor=Constant(value=, class_labels: torch.LongTensor=Constant(value=, flow_representation_embeds: torch.FloatTensor=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_values: Optional[]=Constant(value=, inputs_embeds:..."]
     n_flow_llms_qwen2_py -.->|"forward"| n_flow_llms_qwen2_py_FlowQwen2Model_forward
     n_flow_llms_qwen2_py_FlowQwen2Model_forward -.->|"FlowModelOutputWithP"| n_flow_llms_base_components_py
-        n_flow_llms_qwen2_components_py_FlowQwen2RMSNorm_init["FlowQwen2RMSNorm.__init__(hidden_size: int, freeze_modulation_at_fl..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2RMSNorm_init["FlowQwen2RMSNorm.__init__(hidden_size: int, freeze_modulation_at_flow_start: bool, eps=Constant(value=)"]
     n_flow_llms_qwen2_components_py -.->|"__init__"| n_flow_llms_qwen2_components_py_FlowQwen2RMSNorm_init
-        n_flow_llms_qwen2_components_py_FlowQwen2RMSNorm_forward["FlowQwen2RMSNorm.forward(hidden_states, modulate_weights: bool=Cons..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2RMSNorm_forward["FlowQwen2RMSNorm.forward(hidden_states, modulate_weights: bool=Constant(value=, modulation_weight: Optional[]=Constant(value=, modulation_weight_at_flow_start: Optional[]=Constant(value=)"]
     n_flow_llms_qwen2_components_py -.->|"forward"| n_flow_llms_qwen2_components_py_FlowQwen2RMSNorm_forward
-        n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_init["FlowQwen2SdpaAttention.__init__(config: Qwen2Config, layer_idx: Opt..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_init["FlowQwen2SdpaAttention.__init__(config: Qwen2Config, layer_idx: Optional[]=Constant(value=, separate_flow_params: bool=Constant(value=, separate_flow_params_with_lora: bool=Constant(value=, flow_lora_rank: int=Constant(value=, flow_lora_alpha: Optional[]=Constant(value=)"]
     n_flow_llms_qwen2_components_py -.->|"__init__"| n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_init
     n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_init -.->|"LoRA"| n_flow_llms_base_components_py
-        n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward_only_flow["FlowQwen2SdpaAttention.forward_only_flow(flow_hidden_states: Option..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward_only_flow["FlowQwen2SdpaAttention.forward_only_flow(flow_hidden_states: Optional[]=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_value: Cache=Constant(value=, output_attentions: bool=Constant(value=, position_embeddings: Optional[]=Constant(value=)"]
     n_flow_llms_qwen2_components_py -.->|"forward_only_flow"| n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward_only_flow
     n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward_only_flow -.->|"apply_rotary_to_vect"| n_flow_llms_utils_py
-        n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward["FlowQwen2SdpaAttention.forward(hidden_states: torch.Tensor, flow_hi..."]
+        n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward["FlowQwen2SdpaAttention.forward(hidden_states: torch.Tensor, flow_hidden_states: Optional[]=Constant(value=, use_flow: bool=Constant(value=, attention_mask: Optional[]=Constant(value=, position_ids: Optional[]=Constant(value=, past_key_value: Optional[]=Constant(value=, output_attentions: bool=Constant(value=, use_cache: bool=Constant(value=, cache_position: Optional[]=Constant(value=,..."]
     n_flow_llms_qwen2_components_py -.->|"forward"| n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward
     n_flow_llms_qwen2_components_py_FlowQwen2SdpaAttention_forward -.->|"apply_rotary_to_vect"| n_flow_llms_utils_py
-        n_flow_llms_base_py_FlowToLMEmbedder_init["FlowToLMEmbedder.__init__(flow_representation_dim, main_model_hidde..."]
+        n_flow_llms_base_py_FlowToLMEmbedder_init["FlowToLMEmbedder.__init__(flow_representation_dim, main_model_hidden_dim, hidden_size, depth, flow_representation_normalize, flow_representation_rescaling, noise_rescaling, flow_to_lm_timestep_rescaling, flow_to_lm_rescale_in_float32, bias=Constant(value=, main_model_tokens_per_flow=Constant(value=)"]
     n_flow_llms_base_py -.->|"__init__"| n_flow_llms_base_py_FlowToLMEmbedder_init
     n_flow_llms_base_py_FlowToLMEmbedder_init -.->|"SimpleMLP"| n_flow_llms_base_components_py
         n_flow_llms_base_py_FlowToLMEmbedder_forward["FlowToLMEmbedder.forward(x, timesteps)"]
     n_flow_llms_base_py -.->|"forward"| n_flow_llms_base_py_FlowToLMEmbedder_forward
-        n_flow_llms_base_py_FrequencyEmbedder_init["FrequencyEmbedder.__init__(num_layers, conditioning_dim, frequency_..."]
+        n_flow_llms_base_py_FrequencyEmbedder_init["FrequencyEmbedder.__init__(num_layers, conditioning_dim, frequency_embedding_size=Constant(value=)"]
     n_flow_llms_base_py -.->|"__init__"| n_flow_llms_base_py_FrequencyEmbedder_init
-        n_flow_llms_base_py_FrequencyEmbedder_timestep_embedding["FrequencyEmbedder.timestep_embedding(t, dim, max_period=Constant(va..."]
+        n_flow_llms_base_py_FrequencyEmbedder_timestep_embedding["FrequencyEmbedder.timestep_embedding(t, dim, max_period=Constant(value=) [@staticmethod]"]
     n_flow_llms_base_py -.->|"timestep_embedding"| n_flow_llms_base_py_FrequencyEmbedder_timestep_embedding
         n_flow_llms_base_py_FrequencyEmbedder_forward["FrequencyEmbedder.forward(t)"]
     n_flow_llms_base_py -.->|"forward"| n_flow_llms_base_py_FrequencyEmbedder_forward
@@ -372,27 +378,27 @@ flowchart TD
     n_tools_generate_project_map_py -.->|"visit_AnnAssign"| n_tools_generate_project_map_py_FunctionAnalyzer_visit_AnnAssign
         n_tools_generate_project_map_py_FunctionAnalyzer_visit_FunctionDef["FunctionAnalyzer.visit_FunctionDef(node)"]
     n_tools_generate_project_map_py -.->|"visit_FunctionDef"| n_tools_generate_project_map_py_FunctionAnalyzer_visit_FunctionDef
-        n_tasks_gsm8k_py_GSM8kDataProcessor_init["GSM8kDataProcessor.__init__(config: Namespace, filepath: str, token..."]
+        n_tasks_gsm8k_py_GSM8kDataProcessor_init["GSM8kDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_gsm8k_py -.->|"__init__"| n_tasks_gsm8k_py_GSM8kDataProcessor_init
         n_tasks_gsm8k_py_GSM8kDataProcessor_initializer["GSM8kDataProcessor.initializer()"]
     n_tasks_gsm8k_py -.->|"initializer"| n_tasks_gsm8k_py_GSM8kDataProcessor_initializer
         n_tasks_gsm8k_py_GSM8kDataProcessor_line2data["GSM8kDataProcessor.line2data(line)"]
     n_tasks_gsm8k_py -.->|"line2data"| n_tasks_gsm8k_py_GSM8kDataProcessor_line2data
-        n_tasks_gsm8k_py_GSM8kEvalProcessor_extract_answer_from_completion["GSM8kEvalProcessor.extract_answer_from_completion(completion: str) ..."]
+        n_tasks_gsm8k_py_GSM8kEvalProcessor_extract_answer_from_completion["GSM8kEvalProcessor.extract_answer_from_completion(completion: str) [@staticmethod]"]
     n_tasks_gsm8k_py -.->|"extract_answer_from_completion"| n_tasks_gsm8k_py_GSM8kEvalProcessor_extract_answer_from_completion
-        n_tasks_humaneval_py_HumanEvalDataProcessor_init["HumanEvalDataProcessor.__init__(config: Namespace, filepath: str, t..."]
+        n_tasks_humaneval_py_HumanEvalDataProcessor_init["HumanEvalDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_humaneval_py -.->|"__init__"| n_tasks_humaneval_py_HumanEvalDataProcessor_init
         n_tasks_humaneval_py_HumanEvalDataProcessor_initializer["HumanEvalDataProcessor.initializer()"]
     n_tasks_humaneval_py -.->|"initializer"| n_tasks_humaneval_py_HumanEvalDataProcessor_initializer
         n_tasks_humaneval_py_HumanEvalDataProcessor_line2data["HumanEvalDataProcessor.line2data(line)"]
     n_tasks_humaneval_py -.->|"line2data"| n_tasks_humaneval_py_HumanEvalDataProcessor_line2data
-        n_pipeline_data_py_IdentityDataProcessor_init["IdentityDataProcessor.__init__(config: Namespace, filepath: str, to..."]
+        n_pipeline_data_py_IdentityDataProcessor_init["IdentityDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_pipeline_data_py -.->|"__init__"| n_pipeline_data_py_IdentityDataProcessor_init
         n_pipeline_data_py_IdentityDataProcessor_initializer["IdentityDataProcessor.initializer()"]
     n_pipeline_data_py -.->|"initializer"| n_pipeline_data_py_IdentityDataProcessor_initializer
         n_pipeline_data_py_IdentityDataProcessor_line2data["IdentityDataProcessor.line2data(line)"]
     n_pipeline_data_py -.->|"line2data"| n_pipeline_data_py_IdentityDataProcessor_line2data
-        n_pipeline_inference_py_InferencePipeline_init["InferencePipeline.__init__(config: argparse.Namespace, world_size: ..."]
+        n_pipeline_inference_py_InferencePipeline_init["InferencePipeline.__init__(config: argparse.Namespace, world_size: int, local_rank: int, global_rank: int)"]
     n_pipeline_inference_py -.->|"__init__"| n_pipeline_inference_py_InferencePipeline_init
         n_pipeline_inference_py_InferencePipeline_create_fileid["InferencePipeline.create_fileid()"]
     n_pipeline_inference_py -.->|"create_fileid"| n_pipeline_inference_py_InferencePipeline_create_fileid
@@ -400,34 +406,34 @@ flowchart TD
         n_pipeline_inference_py_InferencePipeline_create_logger["InferencePipeline.create_logger()"]
     n_pipeline_inference_py -.->|"create_logger"| n_pipeline_inference_py_InferencePipeline_create_logger
     n_pipeline_inference_py_InferencePipeline_create_logger -.->|"set_logging_config"| n_pipeline_util_py
-        n_pipeline_inference_py_InferencePipeline_run["InferencePipeline.run(load_data_from_filepath_fn: Callable, data_pr..."]
+        n_pipeline_inference_py_InferencePipeline_run["InferencePipeline.run(load_data_from_filepath_fn: Callable, data_processor_classes: List[], forward_step_fn: Callable, build_tokenizer_fn: Callable=build_tokenizer, build_model_fn: Callable=build_model, data_reformatter_class: Type[]=Constant(value=, data_source_class: Type[]=BasicDataSource, compute_metrics_fn: Callable=Constant(value=, collate_fn: Callable=Constant(value=)"]
     n_pipeline_inference_py -.->|"run"| n_pipeline_inference_py_InferencePipeline_run
     n_pipeline_inference_py_InferencePipeline_run -.->|"StatisticsTracker"| n_pipeline_util_py
     n_pipeline_inference_py_InferencePipeline_run -.->|"is_rank_0"| n_pipeline_util_py
     n_pipeline_inference_py_InferencePipeline_run -.->|"set_random_seed"| n_pipeline_util_py
-        n_tasks_humaneval_py_InstructHumanEvalDataProcessor_init["InstructHumanEvalDataProcessor.__init__(config: Namespace, filepath..."]
+        n_tasks_humaneval_py_InstructHumanEvalDataProcessor_init["InstructHumanEvalDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_humaneval_py -.->|"__init__"| n_tasks_humaneval_py_InstructHumanEvalDataProcessor_init
         n_tasks_humaneval_py_InstructHumanEvalDataProcessor_initializer["InstructHumanEvalDataProcessor.initializer()"]
     n_tasks_humaneval_py -.->|"initializer"| n_tasks_humaneval_py_InstructHumanEvalDataProcessor_initializer
         n_tasks_humaneval_py_InstructHumanEvalDataProcessor_line2data["InstructHumanEvalDataProcessor.line2data(line)"]
     n_tasks_humaneval_py -.->|"line2data"| n_tasks_humaneval_py_InstructHumanEvalDataProcessor_line2data
-        n_flow_llms_base_components_py_LoRA_init["LoRA.__init__(in_dim, out_dim, wrapped_layer, rank, alpha=Constant(..."]
+        n_flow_llms_base_components_py_LoRA_init["LoRA.__init__(in_dim, out_dim, wrapped_layer, rank, alpha=Constant(value=)"]
     n_flow_llms_base_components_py -.->|"__init__"| n_flow_llms_base_components_py_LoRA_init
         n_flow_llms_base_components_py_LoRA_forward["LoRA.forward(x)"]
     n_flow_llms_base_components_py -.->|"forward"| n_flow_llms_base_components_py_LoRA_forward
-        n_tasks_math_py_MATHDataProcessor_init["MATHDataProcessor.__init__(config: Namespace, filepath: str, tokeni..."]
+        n_tasks_math_py_MATHDataProcessor_init["MATHDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_math_py -.->|"__init__"| n_tasks_math_py_MATHDataProcessor_init
         n_tasks_math_py_MATHDataProcessor_initializer["MATHDataProcessor.initializer()"]
     n_tasks_math_py -.->|"initializer"| n_tasks_math_py_MATHDataProcessor_initializer
         n_tasks_math_py_MATHDataProcessor_line2data["MATHDataProcessor.line2data(line)"]
     n_tasks_math_py -.->|"line2data"| n_tasks_math_py_MATHDataProcessor_line2data
-        n_tasks_math_py_MATHEvalProcessor_extract_answer_from_completion["MATHEvalProcessor.extract_answer_from_completion(completion: str) [..."]
+        n_tasks_math_py_MATHEvalProcessor_extract_answer_from_completion["MATHEvalProcessor.extract_answer_from_completion(completion: str) [@staticmethod]"]
     n_tasks_math_py -.->|"extract_answer_from_completion"| n_tasks_math_py_MATHEvalProcessor_extract_answer_from_completion
     n_tasks_math_py_MATHEvalProcessor_extract_answer_from_completion -.->|"extract_last_boxed_o"| n_tasks_utils_py
     n_tasks_math_py_MATHEvalProcessor_extract_answer_from_completion -.->|"extract_last_number"| n_tasks_utils_py
     n_tasks_math_py_MATHEvalProcessor_extract_answer_from_completion -.->|"remove_boxed"| n_tasks_utils_py
     n_tasks_math_py_MATHEvalProcessor_extract_answer_from_completion -.->|"strip_math_latex_str"| n_tasks_utils_py
-        n_tasks_mbpp_py_MBPPDataProcessor_init["MBPPDataProcessor.__init__(config: Namespace, filepath: str, tokeni..."]
+        n_tasks_mbpp_py_MBPPDataProcessor_init["MBPPDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_mbpp_py -.->|"__init__"| n_tasks_mbpp_py_MBPPDataProcessor_init
         n_tasks_mbpp_py_MBPPDataProcessor_initializer["MBPPDataProcessor.initializer()"]
     n_tasks_mbpp_py -.->|"initializer"| n_tasks_mbpp_py_MBPPDataProcessor_initializer
@@ -435,25 +441,25 @@ flowchart TD
     n_tasks_mbpp_py -.->|"get_prompt"| n_tasks_mbpp_py_MBPPDataProcessor_get_prompt
         n_tasks_mbpp_py_MBPPDataProcessor_line2data["MBPPDataProcessor.line2data(line)"]
     n_tasks_mbpp_py -.->|"line2data"| n_tasks_mbpp_py_MBPPDataProcessor_line2data
-        n_tasks_mmlu_py_MMLUDataProcessor_init["MMLUDataProcessor.__init__(config: Namespace, filepath: str, tokeni..."]
+        n_tasks_mmlu_py_MMLUDataProcessor_init["MMLUDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_mmlu_py -.->|"__init__"| n_tasks_mmlu_py_MMLUDataProcessor_init
         n_tasks_mmlu_py_MMLUDataProcessor_initializer["MMLUDataProcessor.initializer()"]
     n_tasks_mmlu_py -.->|"initializer"| n_tasks_mmlu_py_MMLUDataProcessor_initializer
         n_tasks_mmlu_py_MMLUDataProcessor_line2data["MMLUDataProcessor.line2data(line: dict)"]
     n_tasks_mmlu_py -.->|"line2data"| n_tasks_mmlu_py_MMLUDataProcessor_line2data
-        n_tasks_mmlu_py_MMLUEvalProcessor_extract_answer_from_completion["MMLUEvalProcessor.extract_answer_from_completion(completion: str, c..."]
+        n_tasks_mmlu_py_MMLUEvalProcessor_extract_answer_from_completion["MMLUEvalProcessor.extract_answer_from_completion(completion: str, choices: Union[]=Constant(value=) [@staticmethod]"]
     n_tasks_mmlu_py -.->|"extract_answer_from_completion"| n_tasks_mmlu_py_MMLUEvalProcessor_extract_answer_from_completion
     n_tasks_mmlu_py_MMLUEvalProcessor_extract_answer_from_completion -.->|"extract_first_choice"| n_tasks_utils_py
-        n_tasks_mmlu_pro_py_MMLUProDataProcessor_init["MMLUProDataProcessor.__init__(config: Namespace, filepath: str, tok..."]
+        n_tasks_mmlu_pro_py_MMLUProDataProcessor_init["MMLUProDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_mmlu_pro_py -.->|"__init__"| n_tasks_mmlu_pro_py_MMLUProDataProcessor_init
         n_tasks_mmlu_pro_py_MMLUProDataProcessor_initializer["MMLUProDataProcessor.initializer()"]
     n_tasks_mmlu_pro_py -.->|"initializer"| n_tasks_mmlu_pro_py_MMLUProDataProcessor_initializer
         n_tasks_mmlu_pro_py_MMLUProDataProcessor_line2data["MMLUProDataProcessor.line2data(line: dict)"]
     n_tasks_mmlu_pro_py -.->|"line2data"| n_tasks_mmlu_pro_py_MMLUProDataProcessor_line2data
-        n_tasks_mmlu_pro_py_MMLUProEvalProcessor_extract_answer_from_completion["MMLUProEvalProcessor.extract_answer_from_completion(completion: str..."]
+        n_tasks_mmlu_pro_py_MMLUProEvalProcessor_extract_answer_from_completion["MMLUProEvalProcessor.extract_answer_from_completion(completion: str, choices: Union[]=Constant(value=) [@staticmethod]"]
     n_tasks_mmlu_pro_py -.->|"extract_answer_from_completion"| n_tasks_mmlu_pro_py_MMLUProEvalProcessor_extract_answer_from_completion
     n_tasks_mmlu_pro_py_MMLUProEvalProcessor_extract_answer_from_completion -.->|"extract_first_choice"| n_tasks_utils_py
-        n_flow_llms_base_py_MappingEmbedder_init["MappingEmbedder.__init__(input_dim, embedding_dim, depth=Constant(v..."]
+        n_flow_llms_base_py_MappingEmbedder_init["MappingEmbedder.__init__(input_dim, embedding_dim, depth=Constant(value=, bias=Constant(value=)"]
     n_flow_llms_base_py -.->|"__init__"| n_flow_llms_base_py_MappingEmbedder_init
     n_flow_llms_base_py_MappingEmbedder_init -.->|"SimpleMLP"| n_flow_llms_base_components_py
         n_flow_llms_base_py_MappingEmbedder_forward["MappingEmbedder.forward(x)"]
@@ -474,8 +480,14 @@ flowchart TD
     n_tools_generate_project_map_py -.->|"footer"| n_tools_generate_project_map_py_MermaidBuilder_footer
         n_tools_generate_project_map_py_MermaidBuilder_section["MermaidBuilder.section(num, title)"]
     n_tools_generate_project_map_py -.->|"section"| n_tools_generate_project_map_py_MermaidBuilder_section
-        n_tools_generate_project_map_py_MermaidBuilder_more["+4 more methods"]
-    n_tools_generate_project_map_py -.->|"..."| n_tools_generate_project_map_py_MermaidBuilder_more
+        n_tools_generate_project_map_py_MermaidBuilder_subgraph["MermaidBuilder.subgraph(title, nids)"]
+    n_tools_generate_project_map_py -.->|"subgraph"| n_tools_generate_project_map_py_MermaidBuilder_subgraph
+        n_tools_generate_project_map_py_MermaidBuilder_style["MermaidBuilder.style(nid, cls)"]
+    n_tools_generate_project_map_py -.->|"style"| n_tools_generate_project_map_py_MermaidBuilder_style
+        n_tools_generate_project_map_py_MermaidBuilder_emit_node["MermaidBuilder.emit_node(nid: str, label: str, cls=Constant(value=)"]
+    n_tools_generate_project_map_py -.->|"emit_node"| n_tools_generate_project_map_py_MermaidBuilder_emit_node
+        n_tools_generate_project_map_py_MermaidBuilder_edge["MermaidBuilder.edge(src, dst, label=Constant(value=, style=Constant(value=)"]
+    n_tools_generate_project_map_py -.->|"edge"| n_tools_generate_project_map_py_MermaidBuilder_edge
         n_utils_logging_py_Metrics_init["Metrics.__init__()"]
     n_utils_logging_py -.->|"__init__"| n_utils_logging_py_Metrics_init
         n_utils_logging_py_Metrics_reset["Metrics.reset()"]
@@ -488,28 +500,28 @@ flowchart TD
     n_utils_logging_py -.->|"set"| n_utils_logging_py_Metrics_set
         n_utils_logging_py_Metrics_get["Metrics.get()"]
     n_utils_logging_py -.->|"get"| n_utils_logging_py_Metrics_get
-        n_utils_logging_py_Metrics_log["Metrics.log(logging_file, reset=Constant(value=, keys_to_print=List..."]
+        n_utils_logging_py_Metrics_log["Metrics.log(logging_file, reset=Constant(value=, keys_to_print=List(elts=[], c)"]
     n_utils_logging_py -.->|"log"| n_utils_logging_py_Metrics_log
         n_flow_llms_base_py_OneHotEmbedder_init["OneHotEmbedder.__init__(num_classes, embedding_dim, embedding_dropout)"]
     n_flow_llms_base_py -.->|"__init__"| n_flow_llms_base_py_OneHotEmbedder_init
         n_flow_llms_base_py_OneHotEmbedder_token_drop["OneHotEmbedder.token_drop(labels, force_drop_ids=Constant(value=)"]
     n_flow_llms_base_py -.->|"token_drop"| n_flow_llms_base_py_OneHotEmbedder_token_drop
-        n_flow_llms_base_py_OneHotEmbedder_forward["OneHotEmbedder.forward(x, drop_ids=Constant(value=, force_drop_ids=..."]
+        n_flow_llms_base_py_OneHotEmbedder_forward["OneHotEmbedder.forward(x, drop_ids=Constant(value=, force_drop_ids=Constant(value=)"]
     n_flow_llms_base_py -.->|"forward"| n_flow_llms_base_py_OneHotEmbedder_forward
-        n_tasks_piqa_py_PIQADataProcessor_init["PIQADataProcessor.__init__(config: Namespace, filepath: str, tokeni..."]
+        n_tasks_piqa_py_PIQADataProcessor_init["PIQADataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_piqa_py -.->|"__init__"| n_tasks_piqa_py_PIQADataProcessor_init
         n_tasks_piqa_py_PIQADataProcessor_initializer["PIQADataProcessor.initializer()"]
     n_tasks_piqa_py -.->|"initializer"| n_tasks_piqa_py_PIQADataProcessor_initializer
         n_tasks_piqa_py_PIQADataProcessor_line2data["PIQADataProcessor.line2data(line: dict)"]
     n_tasks_piqa_py -.->|"line2data"| n_tasks_piqa_py_PIQADataProcessor_line2data
-        n_tasks_piqa_py_PIQAEvalProcessor_extract_answer_from_completion["PIQAEvalProcessor.extract_answer_from_completion(completion: str, c..."]
+        n_tasks_piqa_py_PIQAEvalProcessor_extract_answer_from_completion["PIQAEvalProcessor.extract_answer_from_completion(completion: str, choices: Union[]=Constant(value=) [@staticmethod]"]
     n_tasks_piqa_py -.->|"extract_answer_from_completion"| n_tasks_piqa_py_PIQAEvalProcessor_extract_answer_from_completion
     n_tasks_piqa_py_PIQAEvalProcessor_extract_answer_from_completion -.->|"extract_first_choice"| n_tasks_utils_py
-        n_flow_llms_base_components_py_SimpleMLP_init["SimpleMLP.__init__(input_dim, hidden_dim, output_dim, activation, n..."]
+        n_flow_llms_base_components_py_SimpleMLP_init["SimpleMLP.__init__(input_dim, hidden_dim, output_dim, activation, num_layers=Constant(value=, bias=Constant(value=, final_non_linearity=Constant(value=, num_parallel=Constant(value=, batched_inputs=Constant(value=)"]
     n_flow_llms_base_components_py -.->|"__init__"| n_flow_llms_base_components_py_SimpleMLP_init
         n_flow_llms_base_components_py_SimpleMLP_forward["SimpleMLP.forward(x)"]
     n_flow_llms_base_components_py -.->|"forward"| n_flow_llms_base_components_py_SimpleMLP_forward
-        n_tasks_smoltalk_py_SmolTalkDataProcessor_init["SmolTalkDataProcessor.__init__(config: Namespace, filepath: str, to..."]
+        n_tasks_smoltalk_py_SmolTalkDataProcessor_init["SmolTalkDataProcessor.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_smoltalk_py -.->|"__init__"| n_tasks_smoltalk_py_SmolTalkDataProcessor_init
     n_tasks_smoltalk_py_SmolTalkDataProcessor_init -.->|"is_rank_0"| n_pipeline_util_py
         n_tasks_smoltalk_py_SmolTalkDataProcessor_initializer["SmolTalkDataProcessor.initializer()"]
@@ -518,9 +530,9 @@ flowchart TD
     n_tasks_smoltalk_py -.->|"line2data"| n_tasks_smoltalk_py_SmolTalkDataProcessor_line2data
         n_pipeline_util_py_StatisticsTracker_init["StatisticsTracker.__init__()"]
     n_pipeline_util_py -.->|"__init__"| n_pipeline_util_py_StatisticsTracker_init
-        n_pipeline_util_py_StatisticsTracker_update_data["StatisticsTracker.update_data(d: Dict, stats_for_tensors: str=Const..."]
+        n_pipeline_util_py_StatisticsTracker_update_data["StatisticsTracker.update_data(d: Dict, stats_for_tensors: str=Constant(value=)"]
     n_pipeline_util_py -.->|"update_data"| n_pipeline_util_py_StatisticsTracker_update_data
-        n_pipeline_util_py_StatisticsTracker_update_stat["StatisticsTracker.update_stat(d: Dict, stats_for_tensors: str=Const..."]
+        n_pipeline_util_py_StatisticsTracker_update_stat["StatisticsTracker.update_stat(d: Dict, stats_for_tensors: str=Constant(value=)"]
     n_pipeline_util_py -.->|"update_stat"| n_pipeline_util_py_StatisticsTracker_update_stat
         n_pipeline_util_py_StatisticsTracker_update_timed_stat["StatisticsTracker.update_timed_stat(time2d: Dict[])"]
     n_pipeline_util_py -.->|"update_timed_stat"| n_pipeline_util_py_StatisticsTracker_update_timed_stat
@@ -532,14 +544,16 @@ flowchart TD
     n_pipeline_util_py -.->|"to_dict"| n_pipeline_util_py_StatisticsTracker_to_dict
         n_pipeline_util_py_StatisticsTracker_get_value["StatisticsTracker.get_value(key: str)"]
     n_pipeline_util_py -.->|"get_value"| n_pipeline_util_py_StatisticsTracker_get_value
-        n_pipeline_util_py_StatisticsTracker_more["+2 more methods"]
-    n_pipeline_util_py -.->|"..."| n_pipeline_util_py_StatisticsTracker_more
-        n_tasks_base_py_Task_init["Task.__init__(config: Namespace, filepath: str, tokenizer: AutoToke..."]
+        n_pipeline_util_py_StatisticsTracker_items["StatisticsTracker.items()"]
+    n_pipeline_util_py -.->|"items"| n_pipeline_util_py_StatisticsTracker_items
+        n_pipeline_util_py_StatisticsTracker_timed_items["StatisticsTracker.timed_items()"]
+    n_pipeline_util_py -.->|"timed_items"| n_pipeline_util_py_StatisticsTracker_timed_items
+        n_tasks_base_py_Task_init["Task.__init__(config: Namespace, filepath: str, tokenizer: AutoTokenizer)"]
     n_tasks_base_py -.->|"__init__"| n_tasks_base_py_Task_init
     n_tasks_base_py_Task_init -.->|"get_shared_category_"| n_tasks_constants_py
         n_tasks_base_py_Task_get_category_and_id["Task.get_category_and_id(sample_category)"]
     n_tasks_base_py -.->|"get_category_and_id"| n_tasks_base_py_Task_get_category_and_id
-        n_pipeline_training_py_TrainingPipeline_init["TrainingPipeline.__init__(config: argparse.Namespace, world_size: i..."]
+        n_pipeline_training_py_TrainingPipeline_init["TrainingPipeline.__init__(config: argparse.Namespace, world_size: int, local_rank: int, global_rank: int)"]
     n_pipeline_training_py -.->|"__init__"| n_pipeline_training_py_TrainingPipeline_init
         n_pipeline_training_py_TrainingPipeline_create_fileid["TrainingPipeline.create_fileid()"]
     n_pipeline_training_py -.->|"create_fileid"| n_pipeline_training_py_TrainingPipeline_create_fileid
@@ -550,7 +564,7 @@ flowchart TD
         n_pipeline_training_py_TrainingPipeline_save_model["TrainingPipeline.save_model(save_model_dir)"]
     n_pipeline_training_py -.->|"save_model"| n_pipeline_training_py_TrainingPipeline_save_model
     n_pipeline_training_py_TrainingPipeline_save_model -.->|"is_rank_0"| n_pipeline_util_py
-        n_pipeline_training_py_TrainingPipeline_run["TrainingPipeline.run(load_data_from_filepath_fn: Callable, data_pro..."]
+        n_pipeline_training_py_TrainingPipeline_run["TrainingPipeline.run(load_data_from_filepath_fn: Callable, data_processor_classes: List[], train_forward_step_fn: Callable, valid_forward_step_fn: Callable, build_tokenizer_fn: Callable=build_tokenizer, build_model_fn: Callable=build_model, build_peft_model_fn: Callable=build_peft_model, build_optimizer_fn: Callable=build_optimizer, build_lr_scheduler_fn: Callable=build_lr_scheduler,..."]
     n_pipeline_training_py -.->|"run"| n_pipeline_training_py_TrainingPipeline_run
     n_pipeline_training_py_TrainingPipeline_run -.->|"StatisticsTracker"| n_pipeline_util_py
     n_pipeline_training_py_TrainingPipeline_run -.->|"get_number_of_parame"| n_pipeline_util_py
@@ -570,10 +584,14 @@ flowchart TD
     n_pipeline_decoding_util_py -.->|"load_from_dict"| n_pipeline_decoding_util_py_Trie_load_from_dict
         n_pipeline_decoding_util_py_Trie_add_to_trie["Trie._add_to_trie(sequence: List[], trie_dict: Dict) [@staticmethod]"]
     n_pipeline_decoding_util_py -.->|"_add_to_trie"| n_pipeline_decoding_util_py_Trie_add_to_trie
-        n_pipeline_decoding_util_py_Trie_get_from_trie["Trie._get_from_trie(prefix_sequence: List[], trie_dict: Dict, appen..."]
+        n_pipeline_decoding_util_py_Trie_get_from_trie["Trie._get_from_trie(prefix_sequence: List[], trie_dict: Dict, append_trie=Constant(value=, bos_token_id: int=Constant(value=) [@staticmethod]"]
     n_pipeline_decoding_util_py -.->|"_get_from_trie"| n_pipeline_decoding_util_py_Trie_get_from_trie
-        n_pipeline_decoding_util_py_Trie_more["+3 more methods"]
-    n_pipeline_decoding_util_py -.->|"..."| n_pipeline_decoding_util_py_Trie_more
+        n_pipeline_decoding_util_py_Trie_iter["Trie.__iter__()"]
+    n_pipeline_decoding_util_py -.->|"__iter__"| n_pipeline_decoding_util_py_Trie_iter
+        n_pipeline_decoding_util_py_Trie_len["Trie.__len__()"]
+    n_pipeline_decoding_util_py -.->|"__len__"| n_pipeline_decoding_util_py_Trie_len
+        n_pipeline_decoding_util_py_Trie_getitem["Trie.__getitem__(value)"]
+    n_pipeline_decoding_util_py -.->|"__getitem__"| n_pipeline_decoding_util_py_Trie_getitem
         n_tasks_arc_py_ARCDataProcessor_attrs["ARCDataProcessor self attrs: few_shot_examples, question_template, task_name"]
     n_tasks_arc_py -.->|"manages"| n_tasks_arc_py_ARCDataProcessor_attrs
         n_pipeline_data_py_BasicDataSource_attrs["BasicDataSource self attrs: data, stage, stat, tokenizer"]
@@ -825,11 +843,13 @@ flowchart TD
     n_tasks_smoltalk_py -->|"uses categories"| n_tasks_constants_data_flow
     n_tasks_arc_py -->|"ARCDataProcessor → ARCEvalProcessor"| n_tasks_arc_py
     n_tasks_gsm8k_py -->|"GSM8kDataProcessor → GSM8kEvalProcessor"| n_tasks_gsm8k_py
-    n_tasks_humaneval_py -->|"HumanEvalDataProcessor → HumanEvalDataProcessor"| n_tasks_humaneval_py
     n_tasks_math_py -->|"MATHDataProcessor → MATHEvalProcessor"| n_tasks_math_py
     n_tasks_mmlu_py -->|"MMLUDataProcessor → MMLUEvalProcessor"| n_tasks_mmlu_py
     n_tasks_mmlu_pro_py -->|"MMLUProDataProcessor → MMLUProEvalProcessor"| n_tasks_mmlu_pro_py
     n_tasks_piqa_py -->|"PIQADataProcessor → PIQAEvalProcessor"| n_tasks_piqa_py
+    no_ep_tasks_humaneval_py["NO EVAL: tasks/humaneval.py: HumanEvalDataProcessor has no matching EvalProcessor"]
+    no_ep_tasks_mbpp_py["NO EVAL: tasks/mbpp.py: MBPPDataProcessor has no matching EvalProcessor"]
+    no_ep_tasks_smoltalk_py["NO EVAL: tasks/smoltalk.py: SmolTalkDataProcessor has no matching EvalProcessor"]
 %% ============================================================
 %% SECTION 6: DUPLICATE FUNCTIONS
 %% ============================================================
@@ -1289,6 +1309,9 @@ flowchart TD
     class n_tools_generate_project_map_py_FunctionAnalyzer_attrs teal
     class n_tools_generate_project_map_py_MermaidBuilder_attrs teal
     class n_utils_logging_py_Metrics_attrs teal
+    class no_ep_tasks_humaneval_py red
+    class no_ep_tasks_mbpp_py red
+    class no_ep_tasks_smoltalk_py red
     class nstep_node blue
     class odeint_node blue
     class orphan_pipeline_data_py_DataReformatter amber

@@ -417,7 +417,7 @@ def detect_unused(name_to_location, resolved_calls, py_files):
 class MermaidBuilder:
     def __init__(self):
         self.lines = []
-        self.max_label_len = 70
+        self.max_label_len = 400
         self._classes: dict[str, str] = {}
 
     def emit(self, text=""):
@@ -429,7 +429,12 @@ class MermaidBuilder:
     def truncate(self, text, maxlen=None):
         maxlen = maxlen or self.max_label_len
         if len(text) > maxlen:
-            return text[:maxlen-3] + "..."
+            cut = text[:maxlen-3]
+            # truncate at last space to avoid cutting words
+            last_space = cut.rfind(" ")
+            if last_space > maxlen // 2:
+                cut = cut[:last_space]
+            return cut + "..."
         return text
 
     def tag_class(self, nid: str, cls: str) -> None:
@@ -560,8 +565,8 @@ def generate():
                 clist = ", ".join(c["name"] for c in classes)
                 parts.append("[" + mb.truncate(clist, 60) + "]")
             if funcs:
-                flist = ", ".join(fn["name"] for fn in funcs[:6])
-                if len(funcs) > 6:
+                flist = ", ".join(fn["name"] for fn in funcs[:20])
+                if len(funcs) > 20:
                     flist += "..."
                 parts.append("(" + flist + ")")
             joined = "\\n".join(parts)
@@ -634,7 +639,7 @@ def generate():
         if len(cinfo["methods"]) == 0:
             continue
         nid = node_id(cf)
-        for m in cinfo["methods"][:8]:  # limit per class
+        for m in cinfo["methods"][:20]:  # limit per class
             sig = m["signature"]
             decorators = m["decorators"]
             label = f"{cname}.{m['name']}({sig})"
@@ -654,8 +659,8 @@ def generate():
                             tnid = node_id(loc[0])
                             mb.edge(mnid, tnid, call_target[:20], style="-.->")
                         break
-        if len(cinfo["methods"]) > 8:
-            mb.emit(f"        {nid}_{cname}_more[\"+{len(cinfo['methods'])-8} more methods\"]")
+        if len(cinfo["methods"]) > 20:
+            mb.emit(f"        {nid}_{cname}_more[\"+{len(cinfo['methods'])-20} more methods\"]")
             mb.edge(nid, f"{nid}_{cname}_more", "...", style="-.->")
 
     # Class-level attributes
@@ -790,7 +795,7 @@ def generate():
             continue
         classes = file_index[f]["classes"]
         dps = [c["name"] for c in classes if "DataProcessor" in c["name"] or c["name"].endswith("Processor")]
-        eps = [c["name"] for c in classes if "Eval" in c["name"]]
+        eps = [c["name"] for c in classes if c["name"].endswith("EvalProcessor")]
         if dps:
             task_data_processors.append((f, dps))
         if eps:
@@ -815,11 +820,18 @@ def generate():
 
     # Task DP -> Eval connections
     for f, eps in task_eval_processors:
-        # Find matching data processor for same task
         dp_name = eps[0].replace("EvalProcessor", "DataProcessor")
         for f2, dps in task_data_processors:
             if any(dp_name in d for d in dps):
-                mb.edge(node_id(f2), node_id(f), f"{dps[0]} → {eps[0]}")
+                lb = f"{dps[0]} → {eps[0]}"
+                mb.edge(node_id(f2), node_id(f), lb)
+    # Flag files with DataProcessor but no EvalProcessor
+    ep_files = {f for f, _ in task_eval_processors}
+    for f, dps in task_data_processors:
+        if f not in ep_files:
+            nid = f"no_ep_{safe_id(str(rel_path(f)))}"
+            mb.emit(f"    {nid}[\"NO EVAL: {rel_path(f)}: {dps[0]} has no matching EvalProcessor\"]")
+            mb.tag_class(nid, "red")
 
     # ── SECTION 6: Duplicate functions (cross-file) ──
     mb.section(6, "DUPLICATE FUNCTIONS")
