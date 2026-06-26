@@ -1,12 +1,11 @@
 <h1 align="center">
-  <a href="https://github.com/SakanaAI/L2D/">
+  <a href="https://github.com/getwinharris/BDiffusion/">
 <img src="figures/logo.png" width="300" /></a><br>
-<b>Large Language Models to Diffusion Finetuning</b><br>
+<b>Large Language Models to Byte Diffusion Finetuning</b><br>
 </h1>
 
 <p align="center">
-  📚 <a href="https://arxiv.org/abs/2501.15781">[Paper]</a> |
-  🤗 <a href="https://huggingface.co/SakanaAI">[Hugging Face]</a>
+  📚 <a href="https://arxiv.org/abs/2501.15781">[Paper]</a>
 </p>
 
 
@@ -20,9 +19,9 @@ pip install -r requirements.txt
 
 ## Running experiments
 
-In the `cfgs/` folder, we provide the full list of configurations and hyper-parameters used in our work to train and evaluate L2D. In particular, the `cfgs/model/` subfolder contain model-specific configurations named as:
-1. `{base_model}_lad.cfg` for L2D full diffusion path finetuning.
-2.  `{base_model}_lad_lora.cfg` for L2D diffusion path finetuning with LoRA.
+In the `cfgs/` folder, we provide the full list of configurations and hyper-parameters used in our work to train and evaluate BDiffusion. In particular, the `cfgs/model/` subfolder contain model-specific configurations named as:
+1. `{base_model}_lad.cfg` for BDiffusion full diffusion path finetuning.
+2.  `{base_model}_lad_lora.cfg` for BDiffusion diffusion path finetuning with LoRA.
 
 For instance: `llama_3.1_8b_instruct_lad_lora.cfg`.
 
@@ -72,15 +71,3 @@ save_wandb = True
 ```
 
 
-## Bibtex
-
-To cite our work, you can use the following:
-
-```
-@article{sakana2025l2d,
-  title={Large Language Models to Diffusion Finetuning},
-  author={Cetin, Edoardo and Zhao, Tianyu and Tang, Yujin},
-  journal={arXiv preprint arXiv:2501.15781},
-  year={2025}
-}
-```
