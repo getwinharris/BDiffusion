@@ -4,10 +4,6 @@
 <b>Large Language Models to Byte Diffusion Finetuning</b><br>
 </h1>
 
-<p align="center">
-  📚 <a href="https://arxiv.org/abs/2501.15781">[Paper]</a>
-</p>
-
 
 ## Installation
 
