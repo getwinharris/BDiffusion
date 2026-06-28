@@ -44,7 +44,19 @@ BROAD_CALL_NAMES = {"__init__", "__call__", "forward", "step", "run",
                     "_build", "_init", "encode", "decode", "get", "set",
                     "update", "reset", "clear", "process", "handle",
                     "_forward", "initializer", "line2data", "prepare",
-                    "configure", "register", "_register", "main"}
+                    "configure", "register", "_register", "main",
+                    "generate", "is_rank_0", "add", "append", "clear",
+                    "items", "log", "to_dict", "to_string", "update_data"}
+# Method names shared across parallel architecture implementations
+# These are NOT duplicates — they're intentional overrides in Llama/Qwen2
+PARALLEL_ARCH_METHODS = {"compute_velocity", "nstep_inference",
+    "get_flow_representation_for_tokens", "load_partial_state_dict",
+    "init_flow_weights_and_freeze_model", "prepare_inputs_for_generation",
+    "sample_timestep_and_flow_embeds", "forward_only_flow", "mlp_forward",
+    "create_fileid", "create_logger", "init_flow_weights",
+    "extract_answer_from_completion", "save_model"}
+# Framework hooks called polymorphically — not detectable via static Call AST
+FRAMEWORK_HOOKS = {"extra_repr", "reset_parameters", "forward_expand"}
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -114,15 +126,59 @@ def resolve_name(node):
         prefix = resolve_name(node.value)
         if prefix is None:
             return None
-        return prefix + "[]"
+        slice_str = _resolve_subscript_slice(node.slice)
+        return f"{prefix}[{slice_str}]" if slice_str else prefix
     return None
+
+
+def _default_str(d):
+    """Return a readable default-value string, never ast.dump garbage."""
+    if isinstance(d, ast.Constant):
+        return repr(d.value)
+    if isinstance(d, (ast.List, ast.Tuple, ast.Dict)):
+        return type(d).__name__.lower()
+    if isinstance(d, ast.UnaryOp) and isinstance(d.operand, ast.Constant):
+        return f"-{d.operand.value}"
+    if isinstance(d, (ast.Name, ast.Attribute)):
+        return resolve_name(d) or "?"
+    if isinstance(d, (ast.Call, ast.Subscript)):
+        inner = resolve_name(d) if isinstance(d, ast.Call) or isinstance(d, ast.Subscript) else None
+        return (inner or "?") + "(...)" if isinstance(d, ast.Call) else (inner or "?") + "[]"
+    return "?"
+
+
+def _resolve_subscript_slice(slice_node):
+    """Resolve a slice of an ast.Subscript to a string."""
+    # Python 3.8 compat: strip Index wrapper
+    if hasattr(ast, "Index") and isinstance(slice_node, ast.Index):
+        slice_node = slice_node.value
+    if isinstance(slice_node, ast.Name):
+        return slice_node.id
+    if isinstance(slice_node, ast.Attribute):
+        return resolve_name(slice_node) or "?"
+    if isinstance(slice_node, ast.Subscript):
+        inner = resolve_name(slice_node) or "?"
+        return inner
+    if isinstance(slice_node, ast.Tuple):
+        parts = [_resolve_subscript_slice(el) for el in slice_node.elts]
+        return ", ".join(p for p in parts if p)
+    if isinstance(slice_node, ast.Constant):
+        return repr(slice_node.value)
+    if isinstance(slice_node, ast.List):
+        parts = [_resolve_subscript_slice(el) for el in slice_node.elts]
+        return "[" + ", ".join(p for p in parts if p) + "]"
+    return "?"
+
+
+FUNCTION_NODES = (ast.FunctionDef, ast.AsyncFunctionDef)
 
 
 class FunctionAnalyzer(ast.NodeVisitor):
     """Walk a function body and collect all call targets, attribute writes,
        local variable names, and references to `self`."""
 
-    def __init__(self):
+    def __init__(self, root_node):
+        self.root_node = root_node
         self.calls = set()         # set of dotted names called
         self.self_attrs = set()    # attributes written on `self`
         self.locals = set()        # simple local variable names
@@ -156,44 +212,148 @@ class FunctionAnalyzer(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node):
-        # Walk into nested function bodies to find actual calls
-        self.generic_visit(node)
+        if node is self.root_node:
+            self.generic_visit(node)
+        else:
+            self.locals.add(node.name)
+
+    def visit_AsyncFunctionDef(self, node):
+        self.visit_FunctionDef(node)
 
 
 def analyze_function_body(func_node):
     """Return (calls, self_attrs, locals) for a single FunctionDef node."""
-    fa = FunctionAnalyzer()
+    fa = FunctionAnalyzer(func_node)
     fa.visit(func_node)
     return fa.calls, fa.self_attrs, fa.locals, func_node.lineno
 
 
+def _format_arg(arg):
+    annotation = ""
+    if arg.annotation:
+        annotation = resolve_name(arg.annotation) or ""
+    return f"{arg.arg}: {annotation}" if annotation else arg.arg
+
+
 def method_signature(func_node):
-    """Return a signature string like (self, input_ids, labels=None)."""
-    parts = []
-    for arg in func_node.args.args:
-        if arg.arg == "self":
-            continue
-        annotation = ""
-        if arg.annotation:
-            annotation = resolve_name(arg.annotation) or ""
-        if annotation:
-            parts.append(f"{arg.arg}: {annotation}")
-        else:
-            parts.append(arg.arg)
-    # defaults
-    n_required = len(func_node.args.args) - len(func_node.args.defaults)
-    if func_node.args.args and func_node.args.args[0].arg == "self":
-        n_required -= 1
+    """Return a signature string like (input_ids, labels=None)."""
+    args = func_node.args
+    positional_args = list(args.posonlyargs) + list(args.args)
+    if positional_args and positional_args[0].arg in {"self", "cls"}:
+        positional_args = positional_args[1:]
+
+    defaults = [None] * (len(positional_args) - len(args.defaults)) + list(args.defaults)
     result = []
-    for i, p in enumerate(parts):
-        default_idx = i - n_required
-        if default_idx >= 0 and default_idx < len(func_node.args.defaults):
-            d = func_node.args.defaults[default_idx]
-            d_str = resolve_name(d) or ast.dump(d)[:15]
-            result.append(f"{p}={d_str}")
-        else:
-            result.append(p)
+
+    posonly_count = len(args.posonlyargs)
+    if args.args and args.args[0].arg in {"self", "cls"}:
+        posonly_count = max(0, posonly_count - 1)
+
+    for i, arg in enumerate(positional_args):
+        part = _format_arg(arg)
+        if defaults[i] is not None:
+            part += f"={_default_str(defaults[i])}"
+        result.append(part)
+        if posonly_count and i == posonly_count - 1:
+            result.append("/")
+
+    if args.vararg:
+        result.append("*" + _format_arg(args.vararg))
+    elif args.kwonlyargs:
+        result.append("*")
+
+    for arg, default in zip(args.kwonlyargs, args.kw_defaults):
+        part = _format_arg(arg)
+        if default is not None:
+            part += f"={_default_str(default)}"
+        result.append(part)
+
+    if args.kwarg:
+        result.append("**" + _format_arg(args.kwarg))
+
     return ", ".join(result)
+
+
+def function_record(node, qualified_name=None, parent=None):
+    calls, attrs, locals_, lineno = analyze_function_body(node)
+    decorators = [resolve_name(d) or "" for d in node.decorator_list if resolve_name(d)]
+    return {
+        "name": node.name,
+        "qualified_name": qualified_name or node.name,
+        "parent": parent,
+        "signature": method_signature(node),
+        "lineno": lineno,
+        "calls": calls,
+        "self_attrs": attrs,
+        "decorators": decorators,
+        "locals": locals_,
+        "async": isinstance(node, ast.AsyncFunctionDef),
+    }
+
+
+class NestedFunctionCollector(ast.NodeVisitor):
+    """Collect nested functions without folding their bodies into parents."""
+
+    def __init__(self):
+        self.class_stack = []
+        self.function_stack = []
+        self.nested_functions = []
+
+    def visit_ClassDef(self, node):
+        self.class_stack.append(node.name)
+        self.generic_visit(node)
+        self.class_stack.pop()
+
+    def visit_FunctionDef(self, node):
+        self._visit_function(node)
+
+    def visit_AsyncFunctionDef(self, node):
+        self._visit_function(node)
+
+    def _visit_function(self, node):
+        if self.function_stack:
+            parent = ".".join(self.class_stack + self.function_stack)
+            qualified_name = f"{parent}.<locals>.{node.name}"
+            self.nested_functions.append(function_record(node, qualified_name, parent))
+        self.function_stack.append(node.name)
+        self.generic_visit(node)
+        self.function_stack.pop()
+
+
+def extract_nested_functions(tree):
+    collector = NestedFunctionCollector()
+    collector.visit(tree)
+    return collector.nested_functions
+
+
+def _function_node_id(filepath, qualified_name):
+    return f"{node_id(filepath)}_fn_{safe_id(qualified_name)}"
+
+
+def emit_function_detail(mb, filepath, fn, name_to_location):
+    label_name = fn.get("qualified_name", fn["name"])
+    label = f"{label_name}({fn['signature']})"
+    if fn.get("async"):
+        label = "async " + label
+    decorators = fn.get("decorators", [])
+    if decorators:
+        label += f" [@{', '.join(decorators)}]"
+    fnid = _function_node_id(filepath, label_name)
+    mb.emit(f"        {fnid}[\"{mb.truncate(label)}\"]")
+    mb.edge(node_id(filepath), fnid, fn["name"], style="-.->")
+
+    for call_target in sorted(fn["calls"]):
+        segments = call_target.split(".")
+        if any(s in BROAD_CALL_NAMES for s in segments):
+            continue
+        target_name = segments[0]
+        if target_name not in name_to_location and len(segments) > 1:
+            target_name = segments[-1]
+        if target_name in name_to_location:
+            for loc in name_to_location[target_name]:
+                if loc[0] != filepath:
+                    mb.edge(fnid, node_id(loc[0]), call_target[:40], style="-.->")
+                break
 
 
 def extract_deep_class_info(tree):
@@ -209,19 +369,11 @@ def extract_deep_class_info(tree):
         class_vars = {}
         all_inner_calls = set()
         for item in ast.iter_child_nodes(node):
-            if isinstance(item, ast.FunctionDef):
-                calls, attrs, locals_, lineno = analyze_function_body(item)
-                sig = method_signature(item)
-                decorators = [resolve_name(d) or "" for d in item.decorator_list if resolve_name(d)]
-                methods.append({
-                    "name": item.name,
-                    "signature": sig,
-                    "lineno": lineno,
-                    "calls": calls,
-                    "decorators": decorators,
-                })
-                self_attrs.update(attrs)
-                all_inner_calls.update(calls)
+            if isinstance(item, FUNCTION_NODES):
+                record = function_record(item)
+                methods.append(record)
+                self_attrs.update(record["self_attrs"])
+                all_inner_calls.update(record["calls"])
             elif isinstance(item, ast.Assign):
                 for t in item.targets:
                     if isinstance(t, ast.Name):
@@ -242,18 +394,8 @@ def extract_top_functions(tree, filepath):
     """Return list of top-level function info dicts."""
     funcs = []
     for node in ast.iter_child_nodes(tree):
-        if isinstance(node, ast.FunctionDef):
-            calls, attrs, locals_, lineno = analyze_function_body(node)
-            sig = method_signature(node)
-            decorators = [resolve_name(d) or "" for d in node.decorator_list if resolve_name(d)]
-            funcs.append({
-                "name": node.name,
-                "signature": sig,
-                "lineno": lineno,
-                "calls": calls,
-                "decorators": decorators,
-                "locals": locals_,
-            })
+        if isinstance(node, FUNCTION_NODES):
+            funcs.append(function_record(node))
     return funcs
 
 
@@ -272,6 +414,17 @@ def extract_file_imports(tree):
     return imports
 
 
+def extract_name_references(tree):
+    """Return plain name and attribute references used in a file."""
+    refs = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            refs.add(node.id)
+        elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
+            refs.add(node.attr)
+    return refs
+
+
 def build_file_index(py_files):
     """Build a rich index of every Python file in the project.
 
@@ -288,16 +441,26 @@ def build_file_index(py_files):
     for r, f in sorted(py_file_map.items()):
         tree = parse_ast(f)
         if tree is None:
-            file_index[f] = {"classes": [], "functions": [], "imports": []}
+            file_index[f] = {
+                "classes": [],
+                "functions": [],
+                "nested_functions": [],
+                "imports": [],
+                "name_refs": set(),
+            }
             continue
         classes = extract_deep_class_info(tree)
         functions = extract_top_functions(tree, f)
+        nested_functions = extract_nested_functions(tree)
         imports = extract_file_imports(tree)
+        name_refs = extract_name_references(tree)
 
         file_index[f] = {
             "classes": classes,
             "functions": functions,
+            "nested_functions": nested_functions,
             "imports": imports,
+            "name_refs": name_refs,
             "tree": tree,
         }
 
@@ -310,10 +473,15 @@ def build_file_index(py_files):
         # Register top-level function definitions
         for fn in functions:
             name_to_location[fn["name"]].append((f, fn["lineno"], "function"))
+        for fn in nested_functions:
+            name_to_location[fn["name"]].append((f, fn["lineno"], "nested_function"))
 
         # Collect call graph
         for fn in functions:
             key = (f, fn["name"])
+            call_graph_raw[key] = fn["calls"]
+        for fn in nested_functions:
+            key = (f, fn["qualified_name"])
             call_graph_raw[key] = fn["calls"]
         for c in classes:
             for m in c["methods"]:
@@ -326,8 +494,7 @@ def build_file_index(py_files):
 def resolve_call_targets(call_graph_raw, name_to_location, py_file_map):
     """Resolve call strings in call_graph_raw to defined locations.
 
-    Returns:
-        resolved: { (caller_path, caller_name) -> {(callee_path, callee_name, callee_kind)} }
+    Handles both direct names (ClassName) and dotted module.ClassName patterns.
     """
     resolved = {}
     for caller_key in sorted(call_graph_raw, key=lambda x: (str(x[0]), x[1])):
@@ -336,77 +503,156 @@ def resolve_call_targets(call_graph_raw, name_to_location, py_file_map):
         targets = []
         seen_targets = set()
         for target in sorted(raw_targets):
-            name = target.split(".")[0]
+            segments = target.split(".")
+            name = segments[0]
             if name in name_to_location:
                 for loc in sorted(name_to_location[name], key=lambda x: (str(x[0]), x[1], str(x[2]))):
                     tkey = (loc[0], target, loc[2])
                     if tkey not in seen_targets:
                         seen_targets.add(tkey)
                         targets.append(tkey)
+            elif len(segments) >= 2:
+                # module.ClassName or module.function pattern
+                # try resolving by last segment
+                last = segments[-1]
+                if last in name_to_location:
+                    for loc in sorted(name_to_location[last], key=lambda x: (str(x[0]), x[1], str(x[2]))):
+                        tkey = (loc[0], target, loc[2])
+                        if tkey not in seen_targets:
+                            seen_targets.add(tkey)
+                            targets.append(tkey)
         resolved[caller_key] = targets
     return resolved
 
 
-def detect_unused(name_to_location, resolved_calls, py_files):
+def _module_to_file(module_path_str, py_file_map):
+    """Convert a dotted module path like 'flow_llms.llama' to a Path."""
+    rel = module_path_str.replace(".", "/")
+    candidates = [f"{rel}.py", f"{rel}/__init__.py"]
+    for r, rf in py_file_map.items():
+        if str(r) in candidates:
+            return rf
+    return None
+
+
+def _mark_file_names_referenced(filepath, file_index, referenced):
+    """Mark all classes and functions defined in filepath as referenced."""
+    idx = file_index.get(filepath)
+    if not idx:
+        return
+    for c in idx.get("classes", []):
+        referenced.add((filepath, c["name"], "class"))
+    for fn in idx.get("functions", []):
+        referenced.add((filepath, fn["name"], "function"))
+
+
+def detect_unused(name_to_location, resolved_calls, py_files, file_index, py_file_map):
     """Find functions/classes defined but never referenced from other files.
 
-    Returns a dict { (path, name) -> kind }
+    Cross-checks against call targets, imports (including module-level),
+    class inheritance, and __init__.py re-exports.
+
+    referenced tracks (caller_file, name) pairs — the FILE THAT DOES THE
+    REFERENCING, not the file where the name is defined.
     """
-    defined = set()
+    defined = {}
     for name, locs in name_to_location.items():
         for loc in locs:
-            defined.add((loc[0], name, loc[2]))
+            defined[(loc[0], name)] = loc[2]
+
+    # referenced: set of (caller_file, name)
     referenced = set()
+
+    # Source 1: resolved call targets — the caller is caller_key[0]
     for caller_key, targets in resolved_calls.items():
+        caller_file = caller_key[0]
         for t in targets:
-            referenced.add((t[0], t[1], t[2]))
-    # Also consider imports as references
+            simple_name = t[1].split(".")[-1]
+            referenced.add((caller_file, simple_name))
+
+    # Source 2: file-level imports — the caller is the importing file
     for f in py_files:
-        tree = parse_ast(f)
-        if tree is None:
-            continue
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    name = alias.name.split(".")[0]
-                    if name in name_to_location:
-                        for loc in name_to_location[name]:
-                            referenced.add((loc[0], name, loc[2]))
-            elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    for alias in node.names:
-                        if alias.asname:
-                            name = alias.asname
-                        else:
-                            name = alias.name
-                        if name in name_to_location:
-                            for loc in name_to_location[name]:
-                                referenced.add((loc[0], name, loc[2]))
+        index = file_index.get(f, {})
+        for imp in index.get("imports", []):
+            if len(imp) == 2:  # import X.Y.Z
+                _, full_name = imp
+                target_file = _module_to_file(full_name, py_file_map)
+                if target_file:
+                    for c in file_index.get(target_file, {}).get("classes", []):
+                        referenced.add((f, c["name"]))
+                    for fn in file_index.get(target_file, {}).get("functions", []):
+                        referenced.add((f, fn["name"]))
+            elif len(imp) == 3:  # from X.Y import Z
+                _, module, names = imp
+                for n in names:
+                    if n in name_to_location:
+                        # The name resolves to a specific definition
+                        referenced.add((f, n))
+                    else:
+                        # n is a submodule (e.g., from flow_llms import llama)
+                        sub_file = _module_to_file(f"{module}.{n}", py_file_map)
+                        if sub_file:
+                            for c in file_index.get(sub_file, {}).get("classes", []):
+                                referenced.add((f, c["name"]))
+                            for fn in file_index.get(sub_file, {}).get("functions", []):
+                                referenced.add((f, fn["name"]))
+
+    # Source 3: Class inheritance — if class B in file F inherits from A, A is used
+    for f, idx in file_index.items():
+        for c in idx.get("classes", []):
+            for base in c.get("bases", []):
+                base_name = base.split(".")[-1] if "." in base else base
+                if base_name in name_to_location:
+                    referenced.add((f, base_name))
+
+    # Source 4: __init__.py exports — if a file imports an __init__.py,
+    # all classes/functions re-exported by that __init__.py are referenced
+    init_reexports = {}  # __init__.py file -> {names}
+    for f, idx in file_index.items():
+        if f.name == "__init__.py":
+            names = set()
+            for c in idx.get("classes", []):
+                names.add(c["name"])
+            for fn in idx.get("functions", []):
+                names.add(fn["name"])
+            init_reexports[f] = names
+
+    for f, idx in file_index.items():
+        for imp in idx.get("imports", []):
+            if len(imp) == 3:  # from X.Y import Z
+                _, module, names = imp
+                init_file = _module_to_file(module, py_file_map)
+                if init_file and init_file.name == "__init__.py":
+                    for n in names:
+                        referenced.add((f, n))
+
+    # Source 5: ordinary name references, including callback/function values
+    # passed without being called directly.
+    for f, idx in file_index.items():
+        for name in idx.get("name_refs", set()):
+            if name in name_to_location:
+                referenced.add((f, name))
+
     unused = {}
-    for d in defined:
-        fpath, dname, kind = d
-        # skip __init__, self, standard dunder methods, main
+    for (fpath, dname), kind in defined.items():
         if dname.startswith("__") or dname == "main" or dname == "__init__":
             continue
         # Check if referenced from a DIFFERENT file
-        ref_in_other = False
-        for r in referenced:
-            if r[1] == dname and r[0] != fpath:
-                ref_in_other = True
-                break
+        ref_in_other = any(r[0] != fpath and r[1] == dname for r in referenced)
         if not ref_in_other:
-            # Check if defined and called only in the same file
-            called_in_same = False
+            # Check if called or otherwise referenced internally.
+            used_in_same = any(r[0] == fpath and r[1] == dname for r in referenced)
             for ck, ct in resolved_calls.items():
                 if ck[0] == fpath:
                     for t in ct:
-                        if t[1] == dname:
-                            called_in_same = True
+                        target_name = t[1].split(".")[-1]
+                        if target_name == dname:
+                            used_in_same = True
                             break
-                if called_in_same:
+                if used_in_same:
                     break
-            if not called_in_same:
-                unused[d] = kind
+            if not used_in_same:
+                unused[(fpath, dname, kind)] = kind
     return unused
 
 
@@ -417,7 +663,7 @@ def detect_unused(name_to_location, resolved_calls, py_files):
 class MermaidBuilder:
     def __init__(self):
         self.lines = []
-        self.max_label_len = 70
+        self.max_label_len = 400
         self._classes: dict[str, str] = {}
 
     def emit(self, text=""):
@@ -429,7 +675,12 @@ class MermaidBuilder:
     def truncate(self, text, maxlen=None):
         maxlen = maxlen or self.max_label_len
         if len(text) > maxlen:
-            return text[:maxlen-3] + "..."
+            cut = text[:maxlen-3]
+            # truncate at last space to avoid cutting words
+            last_space = cut.rfind(" ")
+            if last_space > maxlen // 2:
+                cut = cut[:last_space]
+            return cut + "..."
         return text
 
     def tag_class(self, nid: str, cls: str) -> None:
@@ -501,7 +752,7 @@ def generate():
 
     py_file_map, file_index, name_to_location, call_graph_raw = build_file_index(py_files)
     resolved_calls = resolve_call_targets(call_graph_raw, name_to_location, py_file_map)
-    unused = detect_unused(name_to_location, resolved_calls, py_files)
+    unused = detect_unused(name_to_location, resolved_calls, py_files, file_index, py_file_map)
 
     mb = MermaidBuilder()
     mb.header()
@@ -526,10 +777,10 @@ def generate():
         parts = [f.name]
         if classes:
             clist = ", ".join(c["name"] for c in classes)
-            parts.append("[" + mb.truncate(clist, 55) + "]")
+            parts.append("[" + mb.truncate(clist, 120) + "]")
         if funcs:
             flist = ", ".join(fn["name"] for fn in funcs)
-            parts.append("(" + mb.truncate(flist, 55) + ")")
+            parts.append("(" + mb.truncate(flist, 120) + ")")
         joined_parts = "\\n".join(parts)
         mb.emit(f"        {nid}[\"{mb.truncate(joined_parts)}\"]")
         entry_nodes.append(nid)
@@ -558,10 +809,10 @@ def generate():
             parts = [r.name]
             if classes:
                 clist = ", ".join(c["name"] for c in classes)
-                parts.append("[" + mb.truncate(clist, 60) + "]")
+                parts.append("[" + mb.truncate(clist, 120) + "]")
             if funcs:
-                flist = ", ".join(fn["name"] for fn in funcs[:6])
-                if len(funcs) > 6:
+                flist = ", ".join(fn["name"] for fn in funcs[:20])
+                if len(funcs) > 20:
                     flist += "..."
                 parts.append("(" + flist + ")")
             joined = "\\n".join(parts)
@@ -634,7 +885,7 @@ def generate():
         if len(cinfo["methods"]) == 0:
             continue
         nid = node_id(cf)
-        for m in cinfo["methods"][:8]:  # limit per class
+        for m in cinfo["methods"]:
             sig = m["signature"]
             decorators = m["decorators"]
             label = f"{cname}.{m['name']}({sig})"
@@ -654,9 +905,12 @@ def generate():
                             tnid = node_id(loc[0])
                             mb.edge(mnid, tnid, call_target[:20], style="-.->")
                         break
-        if len(cinfo["methods"]) > 8:
-            mb.emit(f"        {nid}_{cname}_more[\"+{len(cinfo['methods'])-8} more methods\"]")
-            mb.edge(nid, f"{nid}_{cname}_more", "...", style="-.->")
+    # Per-file function detail, including nested helper functions
+    for f in py_files:
+        for fn in file_index[f]["functions"]:
+            emit_function_detail(mb, f, fn, name_to_location)
+        for fn in file_index[f].get("nested_functions", []):
+            emit_function_detail(mb, f, fn, name_to_location)
 
     # Class-level attributes
     for cname, (cf, cinfo) in sorted(class_index.items()):
@@ -700,9 +954,19 @@ def generate():
     # ── SECTION 4: Internal call chains (method-level) ──
     mb.section(4, "KEY INTERNAL CALL CHAINS")
 
+    # Detect flow model architecture files dynamically
+    flow_llms_dir = REPO_ROOT / "flow_llms"
+    model_arch_files = []
+    if flow_llms_dir.is_dir():
+        for f in flow_llms_dir.glob("*.py"):
+            if f.name in ("__init__.py", "base.py", "base_components.py", "utils.py"):
+                continue
+            rp = rel_path(f)
+            pf = py_file_map.get(rp)
+            if pf:
+                model_arch_files.append(pf)
+
     # flow_llms call chain
-    llama_f = py_file_map.get(Path("flow_llms") / "llama.py")
-    qwen2_f = py_file_map.get(Path("flow_llms") / "qwen2.py")
     base_f = py_file_map.get(Path("flow_llms") / "base.py")
     base_comp_f = py_file_map.get(Path("flow_llms") / "base_components.py")
     flow_utils_f = py_file_map.get(Path("flow_llms") / "utils.py")
@@ -716,7 +980,7 @@ def generate():
     mb.tag_class("odeint_node", "blue")
     mb.emit(f"    ts_node[timestep scheduling\\nnoise schedule + flow interpolation]")
     mb.tag_class("ts_node", "blue")
-    for mod_f in [llama_f, qwen2_f]:
+    for mod_f in sorted(model_arch_files, key=lambda p: p.name):
         if mod_f is None:
             continue
         mid = node_id(mod_f)
@@ -782,6 +1046,28 @@ def generate():
     if pipe_data_f:
         mb.edge(hf_node if data_f else hf_node, node_id(pipe_data_f), "load_data_from_jsonl (unused)")
 
+    # Training data flow: dataset → pipeline → model → loss
+    pipe_train_f = py_file_map.get(Path("pipeline") / "training.py")
+
+    if data_f and pipe_train_f:
+        mb.edge(node_id(data_f), node_id(pipe_train_f), "tokenized batches → TrainingPipeline")
+    if pipe_train_f:
+        for mod_f in sorted(model_arch_files, key=lambda p: p.name):
+            if mod_f:
+                mb.edge(node_id(pipe_train_f), node_id(mod_f), "model.forward → loss.backward")
+
+    # Inference/eval data flow: benchmark → inference → model → decode
+    bench_f = py_file_map.get(Path("benchmark.py"))
+    pipe_inf_f = py_file_map.get(Path("pipeline") / "inference.py")
+    dec_f = py_file_map.get(Path("pipeline") / "decoding_util.py")
+    if bench_f:
+        for mod_f in sorted(model_arch_files, key=lambda p: p.name):
+            if mod_f and pipe_inf_f:
+                mb.edge(node_id(bench_f), node_id(pipe_inf_f), "InferencePipeline")
+                mb.edge(node_id(pipe_inf_f), node_id(mod_f), "model forward")
+        if dec_f and pipe_inf_f:
+            mb.edge(node_id(pipe_inf_f), node_id(dec_f), "autoregressive_decode / nstep_inference")
+
     # Task processors
     task_data_processors = []
     task_eval_processors = []
@@ -790,7 +1076,7 @@ def generate():
             continue
         classes = file_index[f]["classes"]
         dps = [c["name"] for c in classes if "DataProcessor" in c["name"] or c["name"].endswith("Processor")]
-        eps = [c["name"] for c in classes if "Eval" in c["name"]]
+        eps = [c["name"] for c in classes if c["name"].endswith("EvalProcessor")]
         if dps:
             task_data_processors.append((f, dps))
         if eps:
@@ -815,11 +1101,20 @@ def generate():
 
     # Task DP -> Eval connections
     for f, eps in task_eval_processors:
-        # Find matching data processor for same task
         dp_name = eps[0].replace("EvalProcessor", "DataProcessor")
         for f2, dps in task_data_processors:
+            if f2 == f:
+                continue  # skip same-file pairs
             if any(dp_name in d for d in dps):
-                mb.edge(node_id(f2), node_id(f), f"{dps[0]} → {eps[0]}")
+                lb = f"{dps[0]} → {eps[0]}"
+                mb.edge(node_id(f2), node_id(f), lb)
+    # Flag files with DataProcessor but no EvalProcessor
+    ep_files = {f for f, _ in task_eval_processors}
+    for f, dps in task_data_processors:
+        if f not in ep_files:
+            nid = f"no_ep_{safe_id(str(rel_path(f)))}"
+            mb.emit(f"    {nid}[\"NO EVAL: {rel_path(f)}: {dps[0]} has no matching EvalProcessor\"]")
+            mb.tag_class(nid, "red")
 
     # ── SECTION 6: Duplicate functions (cross-file) ──
     mb.section(6, "DUPLICATE FUNCTIONS")
@@ -851,7 +1146,7 @@ def generate():
         if len(locs) < 2:
             continue
         dup_tag = safe_id(f"dup_method_{name}")
-        if name in BROAD_CALL_NAMES:
+        if name in BROAD_CALL_NAMES or name in PARALLEL_ARCH_METHODS:
             continue
         mb.emit(f"    subgraph {dup_tag} [\"Duplicate method: {name} ({len(locs)} locations)\"]")
         for lpath, cname, lineno in locs:
@@ -865,6 +1160,9 @@ def generate():
     mb.section(7, "UNUSED DEFINITIONS & STALE CODE")
 
     for (fpath, dname, kind) in sorted(unused, key=lambda x: (str(x[0]), x[1], str(x[2]))):
+        # skip framework hooks called polymorphically (e.g. extra_repr, reset_parameters)
+        if kind == "method" and dname in FRAMEWORK_HOOKS:
+            continue
         # skip if it's only used within its own file
         in_file = name_to_location.get(dname, [])
         only_in_same = all(l[0] == fpath for l in in_file)
@@ -872,7 +1170,7 @@ def generate():
         for ck, ct in resolved_calls.items():
             if ck[0] == fpath:
                 for t in ct:
-                    if t[1] == dname:
+                    if t[1].split(".")[-1] == dname:
                         called_in_file = True
                         break
             if called_in_file:
@@ -984,9 +1282,18 @@ def generate():
                 tgt = mod_to_path[root]
                 s_nid = node_id(f)
                 t_nid = node_id(tgt)
+                # show imported symbols
+                if len(imp) == 3:
+                    _, full_module, names = imp
+                    symbol_str = ", ".join(names[:5])
+                    if len(names) > 5:
+                        symbol_str += "..."
+                    label = f"{imp[0]} → {{{symbol_str}}}"
+                else:
+                    label = imp[1]  # plain "import X"
                 if (s_nid, t_nid) not in seen_edges:
                     seen_edges.add((s_nid, t_nid))
-                    mb.edge(s_nid, t_nid, imp[0])
+                    mb.edge(s_nid, t_nid, label)
 
     mb.footer()
     return "\n".join(mb.lines)
